@@ -3,6 +3,7 @@
 library(magrittr)
 library(tidyverse)
 library(forcats)
+library(grid)
 
 stylize_bar <- function(gplot, usertypeColor = TRUE, singleColor = FALSE, sequentialColor = FALSE, xlabel = "Count", ylabel = "", legendpos = "right", rotate = 0, hjustv = 0, labelBars = TRUE, groupVar = NULL){
   if (usertypeColor) {
@@ -100,8 +101,6 @@ prep_df_whichData <- function(subset_df, onAnVILDF = NULL){
   subset_df %<>%
     separate_longer_delim(AccessWhichControlledData, delim = ", ") %>%
     drop_na(AccessWhichControlledData) %>%
-    #group_by(whichControlledAccess) %>%
-    #summarize(count = n()) %>%
     mutate(AccessWhichControlledData =
              recode(AccessWhichControlledData,
                     "All of Us*" = "All of Us",
@@ -130,11 +129,10 @@ plot_which_data <- function(inputToPlotDF, subtitle = NULL){
 
   toreturnplot <- ggplot(inputToPlotDF,
                          aes(
-                           x = fct_infreq(AccessWhichControlledData),#reorder(AccessWhichControlledData, -count),
-                           #y = count,
+                           x = fct_infreq(AccessWhichControlledData),
                            fill = AnVIL_Availability)
                          ) +
-    geom_bar() + #stat="identity") +
+    geom_bar() +
     theme_classic() +
     theme(panel.background = element_blank(),
           panel.grid = element_blank(),
@@ -148,8 +146,7 @@ plot_which_data <- function(inputToPlotDF, subtitle = NULL){
     ggtitle("What large, controlled access datasets do you access\nor would you be interested in accessing using the AnVIL?",
             subtitle = subtitle) +
     geom_text(aes(label = after_stat(..count..), group = AccessWhichControlledData),
-              stat = 'count', #'summary',
-              #fun = sum,
+              stat = 'count',
               vjust = -1,
               size=4) +
     coord_cartesian(clip = "off") +
@@ -161,8 +158,6 @@ plot_which_data <- function(inputToPlotDF, subtitle = NULL){
 prep_df_typeData <- function(subset_df){
   subset_df %<>%
     separate_longer_delim(TypesOfData, delim=", ") %>%
-    #drop_na(TypesOfData) %>%
-    #group_by(TypesOfData) %>% summarize(count = n()) %>%
     mutate(TypesOfData =
              recode(TypesOfData,
                     "I don't analyze data on AnVIL" = NA_character_,
@@ -175,14 +170,10 @@ prep_df_typeData <- function(subset_df){
 }
 
 plot_type_data <- function(inputToPlotDF, subtitle = NULL){
-  toreturnplot <- ggplot(inputToPlotDF, aes(x = fct_infreq(TypesOfData),#x = reorder(whichTypeData, -count),
-                                            #y = count,
+  toreturnplot <- ggplot(inputToPlotDF, aes(x = fct_infreq(TypesOfData),
                                             fill = "#25445A")) +
-    geom_bar() + #stat="identity") +
-    ggtitle("What types of data do you or would you analyze using the AnVIL?", subtitle = subtitle) #+
-    #geom_text(aes(label = after_stat(y), group = TypesOfData),
-    #          stat = 'summary', fun = sum, vjust = -1, size=4) +
-    #coord_cartesian(clip = "off")
+    geom_bar() +
+    ggtitle("What types of data do you or would you analyze using the AnVIL?", subtitle = subtitle)
 
   toreturnplot %<>% stylize_bar(usertypeColor = FALSE, singleColor = TRUE, xlabel = "Types of data", ylabel = "Count", hjustv = 1, rotate=45)
 

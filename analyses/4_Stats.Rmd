@@ -9,12 +9,11 @@ output: html_document
 library(here)
 library(tidyverse)
 library(ggVennDiagram)
-library(grid)
 ```
 
 ```{r, message = FALSE}
-resultsTidy <- readRDS(here("../data/wrangled_data/resultsTidy_personas.rds"))
-source(here("../resources/scripts/shared_functions.R"))
+resultsTidy <- readRDS(here("data/wrangled_data/resultsTidy_personas.rds"))
+source(here("resources/scripts/shared_functions.R"))
 ```
 
 ```{r}

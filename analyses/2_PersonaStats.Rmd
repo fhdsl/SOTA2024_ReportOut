@@ -12,7 +12,7 @@ library(here)
 ```
 
 ```{r, message = FALSE}
-source(knitr::purl(here("1_TidyData.Rmd"), quiet=TRUE)) # Intended for interactive analysis
+source(knitr::purl(here("analyses/1_TidyData.Rmd"), quiet=TRUE)) # Intended for interactive analysis
 ```
 
 ```{r}
@@ -211,5 +211,5 @@ resultsTidy %<>%
 ```
 
 ```{r}
-saveRDS(resultsTidy, here("../data/wrangled_data/resultsTidy_personas.rds"))
+saveRDS(resultsTidy, here("data/wrangled_data/resultsTidy_personas.rds"))
 ```

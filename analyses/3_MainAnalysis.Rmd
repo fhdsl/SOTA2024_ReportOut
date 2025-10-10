@@ -8,7 +8,6 @@ output: html_document
 
 ```{r message=FALSE, results='hide', warning=FALSE}
 library(here)
-library(grid) #for Grobs
 library(scales)
 library(forcats)
 if (!require("ggVennDiagram")) install.packages("ggVennDiagram", repos = "http://cran.us.r-project.org")

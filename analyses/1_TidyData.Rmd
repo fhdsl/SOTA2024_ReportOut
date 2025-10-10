@@ -56,7 +56,7 @@ This code block reads in that codebook and specifically selects the `SimplifiedC
 
 ```{r, message=FALSE}
 simplifiedColNames <-
-  read_delim(here("../data/annotations/codebook.txt"),
+  read_delim(here("data/annotations/codebook.txt"),
              delim = "\t",
              col_select = SimplifiedColNames)
 resultsTidy <-
@@ -212,7 +212,7 @@ We use a `read_delim()` to read in the institution_codebook file, and select jus
 </details>
 
 ```{r, message = FALSE}
-institutionCodeBook <- read_delim(here("../data/annotations/institution_codebook.txt"), delim="\t", col_select = c(InstitutionalAffiliation, InstitutionalType))
+institutionCodeBook <- read_delim(here("data/annotations/institution_codebook.txt"), delim="\t", col_select = c(InstitutionalAffiliation, InstitutionalType))
 
 resultsTidy <- full_join(resultsTidy, institutionCodeBook, by = "InstitutionalAffiliation")
 ```
@@ -653,5 +653,5 @@ resultsTidy %<>%
 ## Save wrangled data without identifying information
 
 ```{r}
-saveRDS(resultsTidy, here("../data/wrangled_data/resultsTidy.rds"))
+saveRDS(resultsTidy, here("data/wrangled_data/resultsTidy.rds"))
 ```
