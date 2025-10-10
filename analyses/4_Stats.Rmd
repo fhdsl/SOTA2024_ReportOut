@@ -31,25 +31,47 @@ Mode <- function(x) {
 
 ### Response Distribution
 
+Responses made at the beginning of the Results section describing responses received have code supporting them here.
+
 > Responses were received on days without advertisement
+
+---
 
 > Days with advertisement (at least 7 unique days) aligned with or directly preceded receiving responses
 
+---
+
 > The two days with the highest response count (7 and 8 respones) aligned with a user listerv reminder email (2024 - March - 13).
+
+---
 
 > The average number of responses in a day was about 1
 
+---
+
 > the most common number of responses was 0 (21 different days)
+
+---
 
 > followed by 1 (8 different days) if restricted to non-zero responses
 
+---
+
 > When considering the institutional affiliation of respondents, there were no higher than 2 responses from users from the same instutitution on any one day.
+
+---
 
 > Both potential and returning users responded throughout the time period with no discernible pattern related to recruitment method.
 
+---
+
 ### User background and current work
 
+Statements made throughout the "User background and current work" Results section have code supporting them here.
+
 #### Figure 2A - User Type
+
+<details><summary> Making a table for this data/question on identifying user type of the respondents </summary>
 
 ```{r}
 usageDF <- resultsTidy %>%
@@ -74,19 +96,37 @@ usageDF[which(usageDF$UserType == "Potential User"), "group_percent"] <- usageDF
 usageDF
 ```
 
+</details>
+
+---
+
 > 44% (n=22) were returning user responses
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 colSums(usageDF[which(usageDF$UserType == "Returning User"), c("Freq", "percent")])
 ```
 
+</details>
+
+---
+
 > 56% (n=28) were potential users
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 colSums(usageDF[which(usageDF$UserType == "Potential User"), c("Freq", "percent")])
 ```
 
+</details>
+
+---
+
 > The majority of returning user responses (73%, n=16) belonged to the group who use the AnVIL for ongoing projects.  
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 usageDF %>%
@@ -95,7 +135,13 @@ usageDF %>%
   select(CurrentUsageDescription, Freq, group_percent)
 ```
 
+</details>
+
+---
+
 > The majority of potential users were evenly split between two groups (46%, n=13 each), those who have never used the AnVIL (but have heard of it) and those who have used the AnVIL previously, but don't currently.
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 usageDF %>%
@@ -104,7 +150,13 @@ usageDF %>%
   select(CurrentUsageDescription, Freq, group_percent)
 ```
 
+</details>
+
+---
+
 #### Figure 2B - Degree
+
+<details><summary> Making a table for this data/question on degrees of respondents </summary>
 
 ```{r}
 degreeDF <- resultsTidy$FurtherSimplifiedDegrees %>%
@@ -116,28 +168,52 @@ degreeDF <- resultsTidy$FurtherSimplifiedDegrees %>%
 degreeDF
 ```
 
+</details>
+
+---
+
 > Most respondents had obtained or were in the process of obtaining a PhD (62%, n=31)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 degreeDF %>%
   filter(str_detect(., "^PhD"))
 ```
 
+</details>
+
+---
+
 > Clinical advanced degrees (MDs) (6%, n=3)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 degreeDF %>%
   filter(str_detect(., "MD"))
 ```
 
+</details>
+
+---
+
 > Master's degrees (18%, n=9)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 degreeDF %>%
   filter(str_detect(., "Master"))
 ```
 
+</details>
+
+---
+
 #### Figure 2C - Institution
+
+<details><summary> Making a table for this data/question on institutional affiliation </summary>
 
 ```{r}
 instDF <- resultsTidy %>%
@@ -150,7 +226,13 @@ instDF <- resultsTidy %>%
 instDF
 ```
 
+</details>
+
+---
+
 > Most of the respondents using the AnVIL (n=21) reported being affiliated with a research intensive institution
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 instDF %>%
@@ -159,7 +241,13 @@ instDF %>%
   select(FurtherSimplifiedInstitutionalType, Freq)
 ```
 
+</details>
+
+---
+
 > one [using the AnVIL] reported being affiliated with an education focused institution
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 instDF %>%
@@ -168,7 +256,13 @@ instDF %>%
   select(FurtherSimplifiedInstitutionalType, Freq)
 ```
 
+</details>
+
+---
+
 > Only potential users of the platform reported being affiliated with an industry-based institution
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 instDF %>%
@@ -176,55 +270,300 @@ instDF %>%
   select(UserType, FurtherSimplifiedInstitutionalType, Freq)
 ```
 
+</details>
+
+---
+
 #### Consortia
+
+<details><summary> Making a table for this data/question on consortia affiliations </summary>
+
+```{r}
+consortiaDF <- resultsTidy %>%
+  mutate(ConsortiaAffiliations = str_replace_all(ConsortiaAffiliations, c(";|&| and"), ",")) %>%
+  separate_longer_delim(ConsortiaAffiliations,
+           delim=", ") %>%
+  mutate(ConsortiaAffiliations = 
+           recode(ConsortiaAffiliations,
+            "member tech dev group" = "AnVIL",
+            "AnVIL Clinical Resource" = "AnVIL",
+            "AnVIL " = "AnVIL"
+           )
+         ) %>%
+  group_by(ConsortiaAffiliations, UserType) %>%
+  summarize(count = n()) %>%
+  drop_na() %>%
+  arrange(-count)
+```
+
+</details>
+
+---
 
 > Of the 50 responses, 21 provided consortia affiliations
 
+<details><summary>Code supporting the above statement</summary>
+
+```{r}
+sum(!is.na(resultsTidy$ConsortiaAffiliations))
+```
+
+</details>
+
+---
+
 > across 23 unique affiliations
+
+<details><summary>Code supporting the above statement</summary>
+
+```{r}
+n_groups(consortiaDF)
+```
+
+</details>
+
+---
 
 > Of the 21 responses providing consortia affiliations, 13 were from returning users
 
+<details><summary>Code supporting the above statement</summary>
+
+```{r}
+sum(resultsTidy[which(!is.na(resultsTidy$ConsortiaAffiliations)),"UserType"] == "Returning User")
+```
+
+</details>
+
+---
+
 > GREGoR, PRIMED, eMERGE, CCDG, GTEx were the top 5 most represented with n=3 each for GREGoR, PRIMED, and eMERGE and n=2 each for CCDG and GTEx.
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+consortiaDF %>%
+  summarize(sum_count = sum(count)) %>%
+  arrange(-sum_count) %>%
+  filter(ConsortiaAffiliations != "AnVIL") %>%
+  head(n=5)
+```
+
+</details>
+
+---
+
 > all 5 of these consortia were represented in the subset of consortia affiliations reported by returning users
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+consortiaDF %>%
+  filter(UserType == "Returning User") %>%
+  filter(str_detect(ConsortiaAffiliations, "GREGoR|PRIMED|eMERGE|CCDG|GTEx")) %>%
+  summarize(present = count > 0)
+```
+
+</details>
+
+---
 
 #### Figure 3A - Research Experience
 
 > 21 respondents report that they are extremely experienced in analyzing human genomic data
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+table(resultsTidy$HumanGenomicExperience)["Extremely experienced"]
+```
+
+</details>
+
+---
+
 > only 6 respondents report that they are not at all experienced in analyzing human genomic data
+
+<details><summary>Code supporting the above statement</summary>
+
+```{r}
+table(resultsTidy$HumanGenomicExperience)["Not at all experienced"]
+```
+
+</details>
+
+---
 
 > However, for human clinical data and non-human genomic data, more respondents report being not at all experienced in analyzing those data than report being extremely experienced
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+sum(resultsTidy$NonHumanGenomicExperience == "Not at all experienced") > sum(resultsTidy$NonHumanGenomicExperience == "Extremely experienced")
+```
+
+```{r}
+sum(resultsTidy$HumanClinicalExperience == "Not at all experienced") > sum(resultsTidy$HumanClinicalExperience == "Extremely experienced")
+```
+
+</details>
+
+---
 
 #### Figure 3A - Research Experience Overlap
 
 > When limiting the responses we consider to include only respondents who reported being “moderately” or “extremely” experienced for at least one of the categories, we are left with 37 responses (17 from returning users)
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+top_two_box <- resultsTidy %>%
+  filter(humanGenomicFlag | clinicalFlag | nonHumanGenomicFlag) %>%
+  select(UserType) %>%
+  table()
+```
+
+```{r}
+top_two_box_n <- sum(top_two_box)
+top_two_box_n
+```
+
+```{r}
+top_two_box["Returning User"]
+```
+
+</details>
+
+---
+
 > 32% (n=12) reported these levels of experience for all 3 research categories
+
+<details><summary> Code supporting the above statement </summary>
+
+Count (n = ):
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == TRUE & nonHumanGenomicFlag == TRUE) %>%
+  nrow()
+```
+
+Percent: 
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == TRUE & nonHumanGenomicFlag == TRUE) %>%
+  nrow() / top_two_box_n * 100
+```
+
+</details>
+
+---
 
 > 27% (n=10) reported this level of experience for only human genomic research (but no other research categories) 
 
+<details><summary> Code supporting the above statement </summary>
+
+Count (n = )
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == FALSE & nonHumanGenomicFlag == FALSE) %>%
+  nrow()
+```
+
+Percent: 
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == FALSE & nonHumanGenomicFlag == FALSE) %>%
+  nrow() / top_two_box_n * 100
+```
+
+</details>
+
+---
+
 > 16% (n=6) reported this level of experience for both human clinical and human genomic research (but not non-human genomic research)
 
+<details><summary>Code supporting the above statement</summary>
+
+Count (n = )
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == TRUE & nonHumanGenomicFlag == FALSE) %>%
+  nrow()
+```
+
+Percent: 
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == TRUE & nonHumanGenomicFlag == FALSE) %>%
+  nrow() / top_two_box_n * 100
+```
+
+</details>
+
+---
+
 > another 16% (n=6) reported this level of experience in analyzing both non-human and human genomic research
+
+<details><summary> Code supporting the above statement</summary>
+
+Count (n =):
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == FALSE & nonHumanGenomicFlag == TRUE) %>%
+  nrow()
+```
+
+Percent: 
+
+```{r}
+resultsTidy %>%
+  filter(humanGenomicFlag == TRUE & clinicalFlag == FALSE & nonHumanGenomicFlag == TRUE) %>%
+  nrow() / top_two_box_n * 100
+```
+
+</details>
+
+---
 
 #### Figure 4 - Kind of Work
 
 > 44% (n=22) selected only 1 description, 36% (n=18) selected 2 descriptions, 16% (n=8) selected 3 descriptions, and 4% (n=2) selected 5 descriptions.
 
+---
+
 > “Computational work” was the most frequently selected response, reported by 68% of respondents (n=34)
 
+---
+
 > “Project management” at 36% (n=18) 
+
+---
+
 > “Project leadership” at 24% (n=12) respectively.
+
+---
 
 > Of the 22 respondents who selected only 1 description, “Computational work” was the most frequently selected (n=13, 59%)
 
+---
+
 > Of the responses who selected more than one description, “Computational work” was paired most frequently with “Project management” or “Project leadership”. (n=11 and 7 respectively)
+
+---
 
 > Two respondents utilized the “Other” option, each supplying one work description. These included “Cloud Architect” and “Software Development”
 
+---
+
 #### Figure 4 - Personas 
+
+<details><summary> Making a table for this data/question on personas of respondents </summary>
 
 ```{r}
 personaDF <- resultsTidy %>%
@@ -236,7 +575,13 @@ personaDF <- resultsTidy %>%
 personaDF
 ```
 
+</details>
+
+---
+
 > 10 respondents were left uncategorized
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 personaDF %>%
@@ -245,7 +590,13 @@ personaDF %>%
   sum()
 ```
 
+</details>
+
+---
+
 > majority of respondents were assigned to either the Leadership (PI) persona (n=13, showing evidence of computational work together with some form of project management, leadership, or administration) or the Analyst persona (n=13, only reporting computational work)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 personaDF %>%
@@ -255,7 +606,13 @@ personaDF %>%
   head(2)
 ```
 
+</details>
+
+---
+
 > 7 respondents were categorized as an Admin persona
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 personaDF %>%
@@ -264,24 +621,43 @@ personaDF %>%
   sum()
 ```
 
+</details>
+
+---
+
 > 2 potential users were assigned a Clinician persona because of selecting clinical work (this option was not selected by returning users)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 personaDF %>%
   filter(persona == "Clinician")
 ```
 
+</details>
+
+---
+
 > 4 potential users were assigned an Educator persona while only 1 returning user was
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 personaDF %>%
   filter(persona == "Educator")
 ```
 
+</details>
+
+---
+
 ### Barriers & user preferences
 
+Statements made throughout the "Barriers & user preferences" Results section have code supporting them here.
 
 #### Important Features by Persona
+
+<details><summary> Code to make a plot for the observations in this section </summary>
 
 ```{r}
 totalRanksdfPersona <-
@@ -353,29 +729,42 @@ totalRanksdfPersona <-
 totalRanksdfPersona %>% arrange(avgRank)
 ```
 
+</details>
+
 ```{r}
 gpdumbbell <- ggplot(totalRanksdfPersona,
 aes(x = avgRank,
 y = reorder(Feature, -avgRank))) +
 geom_line() +
 geom_point(aes(color = persona), size = 3.5) +
-ggtitle("Rank the following features according to\ntheir importance to you by persona.")
-gpdumbbell %<>% stylize_dumbbell(xmax=6, importance = TRUE, usertype = FALSE)
-
-gpdumbbell
+ggtitle("Rank the following features\n according to their importance\nto you by persona.")
+gpdumbbell %<>% stylize_dumbbell(xmax=6, importance = TRUE, usertype = FALSE) +
+  theme(text = element_text(size=12))
 ```
+
+All 3 of the observations below are made from the plot above and by looking at the total ranks data frame (`totalRanksdfPersona`)
+
+---
 
 > When looking at responses specific to the assigned personas,  we observe that the average rank choice for easy billing setup is highest for Admins compared to other personas
 
+---
+
 > Educators and Clinicians rank both a free version with limited compute or storage and greater adoption by the scientific community more highly than other personas
+
+---
 
 > PIs rank having specific tools or datasets available/supported as their most important feature of AnVIL
 
-All 3 of the observations above are made from the plot above and by looking at the total ranks data frame (`totalRanksdfPersona`)
+---
+
+
 
 #### Awareness - Figure 6
 
 > Potential users were split at 46% (n=13) knowing about monthly AnVIL Demos or the support forum 
+
+<details><summary> Code supporting the above statement </summary>
 
 Counts observed in the plot (6B, 6D)
 
@@ -388,7 +777,13 @@ resultsTidy %>%
   nrow() / potential_n * 100
 ```
 
+</details>
+
+---
+
 > and 54% (n=15) not being aware of the support opportunities
+
+<details><summary> Code supporting the above statement </summary>
 
 Counts observed in the plot (6B, 6D)
 
@@ -401,7 +796,13 @@ resultsTidy %>%
   nrow() / potential_n * 100
 ```
 
+</details>
+
+---
+
 If we look at this by defining a column of aware of either, these numbers don't match, suggesting that there are not always matching aware/not aware answers for both support options
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 resultsTidy %>% 
@@ -411,7 +812,13 @@ resultsTidy %>%
   summarize(sumAware = sum(supportAwareness))
 ```
 
+</details>
+
+---
+
 > only 71% (n=20) of potential users had matching aware/not aware responses for both AnVIL Demos and the support forum
+
+<details><summary> Code supporting the above statement </summary>
 
 Count (n = ):
 
@@ -431,7 +838,13 @@ Percentage:
 potential_matching / potential_n * 100
 ```
 
+</details>
+
+---
+
 > Of the 15 not aware respondents, only 73% (n=11) were not aware of both AnVIL Demos and the support forum
+
+<details><summary> Code supporting the above statement </summary>
 
 Count (n = )
 
@@ -452,7 +865,13 @@ Percentage:
 potential_na_matching / 15 * 100
 ```
 
+</details>
+
+---
+
 > Similarly, 86% (n=19) of returning users had matching aware/not aware responses for both AnVIL Demos and the support forum
+
+<details><summary> Code supporting the above statement </summary>
 
 Count (n = )
 
@@ -472,7 +891,13 @@ Percentage:
 returning_matching / return_n * 100
 ```
 
+</details>
+
+---
+
 > Only 4 returning user responses were not aware of both the AnVIL Demos or the support forum
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 returning_na_matching <- resultsTidy %>%
@@ -485,7 +910,13 @@ returning_na_matching <- resultsTidy %>%
 returning_na_matching
 ```
 
+</details>
+
+---
+
 > Returning users showed a higher percentage of respondents who were aware of the support opportunities (n=16, 73% and n=17, 77%)
+
+<details><summary> Code supporting the above statement </summary>
 
 Counts observed in the plot (6B, 6D)
 
@@ -507,7 +938,13 @@ resultsTidy %>%
   nrow() / return_n * 100
 ```
 
+</details>
+
+---
+
 > Returning users are also more represented in the group of respondents who have attended AnVIL Demos (n=12 or 71% of attenders)
+
+<details><summary> Code supporting the above statement </summary>
 
 Count (n = ):
 
@@ -530,7 +967,13 @@ resultsTidy %>%
   nrow() * 100
 ```
 
+</details>
+
+---
+
 > [Returning users] utilized the support forum (n=8 or 67% of those who have read through, posted, or replied in this sample)
+
+<details><summary> Code supporting the above statement </summary>
 
 Count (n = ):
 
@@ -553,7 +996,13 @@ resultsTidy %>%
   nrow() * 100
 ```
 
+</details>
+
+---
+
 > most poll respondents have not attended AnVIL Demos with only 34% (n=17) reporting attendance
+
+<details><summary> Code supporting the above statement </summary>
 
 Count (n = ):
 
@@ -570,9 +1019,15 @@ resultsTidy %>%
   filter(str_detect(AnVILDemo, "Yes")) %>%
   nrow() / nresponses * 100
 ```
+
+</details>
+
+---
 
 > Most respondents have not utilized the support forum with only 24% (n=12) in some way reporting use
 
+<details><summary> Code supporting the above statement </summary>
+
 Count (n = ):
 
 ```{r}
@@ -589,9 +1044,17 @@ resultsTidy %>%
   nrow() / nresponses * 100
 ```
 
+</details>
+
+---
+
 ### User technological comfort
 
+Statements made throughout the "User technological comfort" Results section have code supporting them here.
+
 #### Where analyses are run 
+
+<details><summary> Making a table for this data/question on where respondents run analyses </summary>
 
 ```{r}
 runLocDF <- resultsTidy %>%
@@ -620,13 +1083,25 @@ runLocDF[which(runLocDF$UserType == "Potential User"), "group_percent"] <- runLo
 runLocDF
 ```
 
+</details>
+
+---
+
 > Institutional High Performance Computers (HPCs) 70%, n=35
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 colSums(runLocDF[which(str_detect(runLocDF$WhereAnalysesRun, "HPC")), c("Freq", "percent")])
 ```
 
+</details>
+
+---
+
 > 64% of returning users
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF %>%
@@ -635,7 +1110,13 @@ runLocDF %>%
   select(group_percent)
 ```
 
+</details>
+
+---
+
 > 75% of potential users
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF %>%
@@ -644,13 +1125,25 @@ runLocDF %>%
   select(group_percent)
 ```
 
+</details>
+
+---
+
 > locally on personal computers (68%, n=34) 
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 colSums(runLocDF[which(str_detect(runLocDF$WhereAnalysesRun, "locally")), c("Freq", "percent")])
 ```
 
+</details>
+
+---
+
 > 55% of returning users 
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF %>%
@@ -659,13 +1152,25 @@ runLocDF %>%
   select(group_percent)
 ```
 
+</details>
+
+---
+
 > 79% of potential users
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF[which(str_detect(runLocDF$WhereAnalysesRun, "locally") & runLocDF$UserType == "Potential User"), "Freq"] / potential_n * 100
 ```
 
+</details>
+
+---
+
 > For provided cloud options, GCP was reported as used the most (n=21) split across user types
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF %>%
@@ -675,7 +1180,13 @@ runLocDF %>%
   arrange(-sum_Freq)
 ```
 
+</details>
+
+---
+
 > (55% of returning users)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF %>%
@@ -684,7 +1195,13 @@ runLocDF %>%
   select(group_percent)
 ```
 
+</details>
+
+---
+
 >  (and 32% of potential users)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF %>%
@@ -693,22 +1210,42 @@ runLocDF %>%
   select(group_percent)
 ```
 
+</details>
+
+---
+
 > We also observed that potential users report using Galaxy (a free option)(18%, n=5), more than returning users do (5%, n=1)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF[which(str_detect(runLocDF$WhereAnalysesRun, "Galaxy")),c("WhereAnalysesRun", "Freq", "group_percent")]
 ```
 
+</details>
+
+---
+
 > Potential users also submitted All of Us, sciserver.org, and UKBB RAP as other platforms
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 runLocDF %>%
   filter(str_detect(WhereAnalysesRun, "Us|sciserver|RAP"))
 ```
 
+</details>
+
+---
+
 ### User resource and data needs
 
+Statements made throughout the "User resource and data needs" Results section have code supporting them here.
+
 #### Foreseeable computational needs
+
+<details><summary> Making a table for this data/question on requested computational/storage resources </summary> 
 
 ```{r}
 computationalNeedOverlap <- 
@@ -726,7 +1263,13 @@ overlap_table <- process_region_data(Venn(computationalNeedOverlap))
 overlap_table
 ```
 
+</details>
+
+---
+
 > The most common response was needing large amounts of storage (e.g., Terabytes), selected by 50% (n=11)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 length(computationalNeedOverlap$storageList)
@@ -736,41 +1279,81 @@ length(computationalNeedOverlap$storageList)
 length(computationalNeedOverlap$storageList) / return_n * 100
 ```
 
+</details>
+
+---
+
 > 32% (n=7) only selected this option [of large storage]
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-overlap_table[which(overlap_table$name == "storageList"),]
+overlap_table %>%
+  filter(name == "storageList")
 ```
 
 ```{r}
-overlap_table[which(overlap_table$name == "storageList"),"count"] / return_n * 100
+overlap_table %>%
+  filter(name == "storageList") %>%
+  select(count) / return_n * 100
 ```
+
+</details>
+
+---
 
 > Many nodes 27%
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 length(computationalNeedOverlap$nodesList) / return_n * 100
 ```
 
+</details>
+
+---
+
 > GPUs 27%
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 length(computationalNeedOverlap$gpuList) / return_n * 100
 ```
 
-> large memory 18% respectively
+</details>
+
+---
+
+> large memory 18%
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 length(computationalNeedOverlap$memoryList) / return_n * 100
 ```
 
+</details>
+
+---
+
 > Only 1 response selected all 4 computational need
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-overlap_table[which(overlap_table$id == "1/2/3/4"), "count"]
+overlap_table %>%
+  filter(id == "1/2/3/4")
 ```
 
+</details>
+
+---
+
 > The most common combination of selections was GPUs and many nodes (n=2)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 overlap_table %>%
@@ -779,7 +1362,13 @@ overlap_table %>%
   head(1)
 ```
 
+</details>
+
+---
+
 > All other combinations were only selected once or not at all
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 overlap_table %>%
@@ -789,7 +1378,13 @@ overlap_table %>%
   unique()
 ```
 
+</details>
+
+---
+
 > 11 possible combinations of multiple options
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 noptions <- resultsTidy %>% 
@@ -808,11 +1403,24 @@ for (i in c(2:noptions)){
 npossible
 ```
 
+</details>
+
+---
+
 #### DMS repository
+
+<details><summary> Making a table for this data/question on data sharing repositories for DMS Policy </summary>
 
 ```{r}
 dmsDFwUT <- resultsTidy %>% 
   separate_longer_delim(RepositoriesDMS, ", ") %>% 
+  separate_longer_delim(RepositoriesDMS, delim=" & ") %>%
+  mutate(RepositoriesDMS =
+           case_when(
+             str_detect(RepositoriesDMS, regex("dbgap", ignore_case = TRUE)) ~ "dbGaP",
+             .default = as.character(RepositoriesDMS)
+                     )
+         ) %>%
   select(c(UserType, RepositoriesDMS)) %>% 
   table() %>% 
   as.data.frame() %>% 
@@ -827,19 +1435,45 @@ dmsDFwUT[which(dmsDFwUT$UserType == "Potential User"), "group_percent"] <- dmsDF
 dmsDFwUT
 ```
 
+</details>
+
+---
+
 > 46% (n=23) of all respondents flagged the AnVIL as a repository that they use or are considering use of to share data to comply with the NIH DMS policy
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-colSums(dmsDFwUT[which(dmsDFwUT$RepositoriesDMS == "AnVIL"),c("Freq", "percent")])
+dmsDFwUT %>%
+  filter(RepositoriesDMS == "AnVIL") %>%
+  summarize(across(c(Freq, percent), sum, .names = "sum_{.col}"))
 ```
+</details>
+
+---
 
 > Of those 23, 65% (n=15) were returning users of the AnVIL 
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-dmsDFwUT[which(dmsDFwUT$UserType == "Returning User" & dmsDFwUT$RepositoriesDMS == "AnVIL"), "Freq"] / sum(dmsDFwUT[which(dmsDFwUT$RepositoriesDMS == "AnVIL"), "Freq"]) * 100
+returning_selectedAnVIL <- dmsDFwUT %>% 
+  filter(RepositoriesDMS == "AnVIL") %>%
+  filter(UserType == "Returning User") %>%
+  select(Freq) %>% unlist() %>% unname()
+
+returning_selectedAnVIL
+
+returning_selectedAnVIL / sum(dmsDFwUT[which(dmsDFwUT$RepositoriesDMS == "AnVIL"), "Freq"]) * 100
 ```
 
+</details>
+
+---
+
 > (68% of the returning user sample of this community poll)
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 dmsDFwUT %>%
@@ -848,9 +1482,17 @@ dmsDFwUT %>%
   select(group_percent)
 ```
 
+</details>
+
+---
+
 #### Controlled Access Data Sets
 
+---
+
 > Over half of all respondents (n=29) reported that they are “extremely interested” in working with controlled access datasets
+
+<details><summary> Code supporting the above statement </summary>
 
 ```{r}
 extremely_interested_respondents <- unname(table(resultsTidy$InterestControlledData)[5])
@@ -861,6 +1503,12 @@ extremely_interested_respondents
 ```{r}
 extremely_interested_respondents / nresponses * 100
 ```
+
+</details>
+
+---
+
+<details><summary> Making a table for this data/question on specific interest in controlled access data </summary>
 
 ```{r}
 controlledDataDF <- resultsTidy %>% 
@@ -874,25 +1522,48 @@ controlledDataDF <- resultsTidy %>%
 controlledDataDF
 ```
 
+</details>
+
 > All of Us and UK Biobank were the most selected (n=34 each)
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-controlledDataDF[which(controlledDataDF$AccessWhichControlledData == "All of Us*" | controlledDataDF$AccessWhichControlledData == "UK Biobank*"),]
+controlledDataDF %>%
+  head(2)
 ```
+
+</details>
 
 > GTEx was selected by 64% (n=32)
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-controlledDataDF[which(str_detect(controlledDataDF$AccessWhichControlledData, "GTEx")),]
+controlledDataDF %>%
+  filter(str_detect(AccessWhichControlledData, "GTEx"))
 ```
+
+</details>
+
+---
 
 > CCDG was selected by 40% (n=20)
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-controlledDataDF[which(str_detect(controlledDataDF$AccessWhichControlledData, "CCDG")),]
+controlledDataDF %>%
+  filter(str_detect(AccessWhichControlledData, "CCDG"))
 ```
 
+</details>
+
+---
+
 #### Different types of data
+
+<details><summary> Making a table for this data/question on experience with different types of data </summary>
 
 ```{r}
 typeOfDataDF <- resultsTidy %>% 
@@ -913,31 +1584,62 @@ typeOfDataDF <- resultsTidy %>%
 typeOfDataDF
 ```
 
+</details>
+
+---
+
 > Genomes/exomes (88%, n=44)
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-typeOfDataDF[which(typeOfDataDF$TypesOfData == "Genomes/exomes"),]
+typeOfDataDF %>%
+  filter(TypesOfData == "Genomes/exomes")
 ```
+
+</details>
+
+---
 
 > Transcriptomes (62%, n=31)
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-typeOfDataDF[which(typeOfDataDF$TypesOfData == "Transcriptomes"),]
+typeOfDataDF %>%
+  filter(TypesOfData == "Transcriptomes")
 ```
+
+</details>
+
+---
 
 > A variety of other options (e.g., Phenotypic, Single Cell, Electronic Health Record, Epigenomes, Metabolomes, Proteomes, Imaging, etc.) were selected at a rate of at least 10% (n=5), but no more than 40% (n=20)
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-typeOfDataDF[which(typeOfDataDF$percent >= 10 & typeOfDataDF$percent <= 40), "TypesOfData"]
+typeOfDataDF %>%
+  filter(percent >= 10) %>%
+  filter(percent <= 40)
 ```
+
+</details>
+
+---
 
 > Survey, structural, and variant calling were the only options selected or mentioned by fewer than 10% of respondents
 
+<details><summary> Code supporting the above statement </summary>
+
 ```{r}
-typeOfDataDF[which(typeOfDataDF$percent < 10), "TypesOfData"]
+typeOfDataDF %>%
+  filter(percent < 10)
 ```
 
+</details>
 
+---
 
 
 

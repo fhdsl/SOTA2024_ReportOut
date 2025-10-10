@@ -23,10 +23,10 @@ These are codebook files created by the analysts explaining the columns in the r
 
 ### analyses
 
-* `1_TidyData.Rmd`
-* `2_PersonaStats.Rmd`
-* `3_MainAnalysis.Rmd`
-* `4_Stats.Rmd`
+* `1_TidyData.Rmd`: Fetching of Raw Data and wrangling steps for later analysis to create a de-identified tidy data file.
+* `2_PersonaStats.Rmd`: Identification of personas and joining of persona categorization with tidy data.
+* `3_MainAnalysis.Rmd`: Main analysis and plotting driver
+* `4_Stats.Rmd`: Code to support all stated stats/general observations in the report out that aren't directly observed from plots/figures.
 
 ### resources
 
@@ -34,7 +34,7 @@ These are codebook files created by the analysts explaining the columns in the r
 
 ### figures
 
-* `figureCreation.Rmd`
+* `figureCreation.Rmd`: Uses `patchwork` to combine plots from `3_MainAnalysis.Rmd`to make figure panels and adjusts aesthetics as necessary.
 
 ## Other notes:
 
