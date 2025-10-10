@@ -12,12 +12,11 @@ library(tibble)
 library(ggtext)
 
 # Inherit plots
-knitr::knit_child(here("anvilPoll2024MainAnalysis.Rmd"))
+knitr::knit_child(here("analyses/anvilPoll2024MainAnalysis.Rmd"))
 ```
 
 ## Figure 1: Flowchart
 
-![Design of the State of the AnVIL 2024 Community Poll](plots/AnVILPoll2024Flowchart_returninglabel.png)
 
 ## Figure 2: Type of User Identification and Background
 
@@ -36,49 +35,44 @@ knitr::knit_child(here("anvilPoll2024MainAnalysis.Rmd"))
                                 #plot.caption = ggtext::element_textbox_simple(hjust = 0),
                                 plot.tag = element_text(face = "bold")))
 
-ggsave(here("plots/user_identification_panels.png"), width=12, height=16, units = "in")
+#ggsave(here("plots/user_identification_panels.png"), width=12, height=16, units = "in")
 ```
 
 ## Figure 3: User research experience  
 
 ```{r, fig.width=9, fig.height = 11}
 genomicsExpPlot_replot /
-  vennExperience + 
+  vennExperience +
   plot_annotation(title = "User research experience",
-                  #caption = 'A: We asked respondents "How much experience do you have analyzing the following data categories?" 21 respondents report that they are "extremely experienced" in analyzing human genomic data, while only 6 respondents report that they are "not at all experienced" in analyzing human genomic data. However, more respondents report being "not at all experienced" in analyzing human clinical data and non-human genomic data. B: Venn diagram showing the overlap for respondents who reported being "moderately" or "extremely experienced" for these various research categories (n = 37). 32% reported such levels of experience for all 3 research categories; the next highest percentage (27%) reported such levels of experience for human genomic data only with no overlap with other research categories.', 
-                  tag_levels = 'A', 
+                  #caption = 'A: We asked respondents "How much experience do you have analyzing the following data categories?" 21 respondents report that they are "extremely experienced" in analyzing human genomic data, while only 6 respondents report that they are "not at all experienced" in analyzing human genomic data. However, more respondents report being "not at all experienced" in analyzing human clinical data and non-human genomic data. B: Venn diagram showing the overlap for respondents who reported being "moderately" or "extremely experienced" for these various research categories (n = 37). 32% reported such levels of experience for all 3 research categories; the next highest percentage (27%) reported such levels of experience for human genomic data only with no overlap with other research categories.',
+                  tag_levels = 'A',
                   theme = theme(plot.title = element_text(size = 18),
                                 #plot.caption.position = "plot",
                                 #plot.caption = ggtext::element_textbox_simple(hjust = 0),
                                 plot.tag = element_text(face = "bold"))) +
   plot_layout(widths = c(9), heights = c(7, 6))
 
-ggsave(here("plots/user_research_experience_panels.png"), width=9, height=11, units = "in")
+#ggsave(here("plots/user_research_experience_panels.png"), width=9, height=11, units = "in")
 
 ```
 
 ## Figure 4: Personas
 
 ```{r, fig.wdith = 7, fig.height = 7}
-load(here("data/persona_classifications.rdata"))
+tidy_results_withPersona <- readRDS(here("data/wrangled_data/resultsTidy_personas.rds"))
 
 kowpersona <- full_join(
-  rbind(
-     clinician_persona,
-     analyst_persona,
-     educator_persona,
-     pi_persona,
-     admin_persona,
-     no_persona
-  ) %>% 
-    ungroup() %>% 
+  tidy_results_withPersona %>%
     select(persona, Timestamp) %>%
     mutate(Timestamp = factor(Timestamp),
-           persona = na_if(persona, "None Assigned")),
-  dfForPlotKOW, by = "Timestamp")
+           persona = na_if(persona, "None assigned")),
+  dfForPlotKOW, by = "Timestamp") %>%
+  group_by(UserType, persona, Timestamp) %>%
+  mutate(Time_ID = cur_group_id()) %>%
+  ungroup()
 
 p1 <- ggplot(kowpersona,
-       aes(x = Timestamp,
+       aes(x = Time_ID,
            y = factor(KindOfWork, levels = factorLevel),
            fill = KindOfWork
            )) +
@@ -90,10 +84,11 @@ p1 <- ggplot(kowpersona,
         text = element_text(size=12))+
   ylab("") +
   xlab("") +
-  facet_wrap(~UserType, scales = "free_x")
+  facet_wrap(~UserType, scales = "free_x") + 
+  scale_x_continuous(expand = c(0, 0))
 
 p2 <-ggplot(kowpersona,
-       aes(x = Timestamp,
+       aes(x = Time_ID,
            y = -1,
            fill = persona)) +
   geom_col(width = 1) +
@@ -101,19 +96,20 @@ p2 <-ggplot(kowpersona,
   theme(axis.text.x = element_blank(),
         axis.ticks.x=element_blank(),
         axis.text.y = element_blank(),
-        axis.ticks.y=element_blank(), 
+        axis.ticks.y=element_blank(),
         strip.text = element_blank(),
         legend.position = "bottom") +
   ylab("") +
   xlab("Respondent") +
   facet_wrap(~UserType,scales = "free_x") +
   ylim(c(0,-1)) +
-  scale_fill_grey(start = 0.8, end = 0, na.value = "white")
+  scale_fill_grey(start = 0.8, end = 0, na.value = "white") +
+  scale_x_continuous(expand = c(0, 0))
 
-p3 <- kowpersona %>% 
-  select(persona, Timestamp) %>%
+p3 <- kowpersona %>%
+  select(persona, Time_ID) %>%
   distinct() %>%
-  ggplot(aes(x = factor(1), 
+  ggplot(aes(x = factor(1),
            fill=persona)) +
   geom_bar(stat="count", width=1) +
   coord_polar("y", start=0) +
@@ -135,8 +131,8 @@ p1 / p2 / p3 +
                                 #plot.caption.position = "plot",
                                 #plot.caption = ggtext::element_textbox_simple(hjust = 0)
                                 ))
-  
-ggsave(here("plots/personas_panels.png"), width=7, height=7, units="in")
+
+#ggsave(here("plots/personas_panels.png"), width=7, height=7, units="in")
 ```
 
 ## Figure 5: User Preferences
@@ -156,7 +152,7 @@ ggsave(here("plots/personas_panels.png"), width=7, height=7, units="in")
               axis_title = "collect",
               widths = c(10), heights = c(6, 0.5, 4)) & theme(legend.position = 'bottom')
 
-ggsave(here("plots/user_preferences_panels.png"), width=10, height=12, units="in")
+#ggsave(here("plots/user_preferences_panels.png"), width=10, height=12, units="in")
 ```
 
 ## Figure 6: Support Awareness
@@ -173,14 +169,14 @@ ggsave(here("plots/user_preferences_panels.png"), width=10, height=12, units="in
                                 plot.tag = element_text(face = "bold"))) +
   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 
-ggsave(here("plots/awareness_panels.png"), width=16, height=10, units="in")
+#ggsave(here("plots/awareness_panels.png"), width=16, height=10, units="in")
 ```
 
 ## Figure 7: User Technological Comfort
 
 ```{r, fig.width = 10, fig.height = 12}
 (PlotToolKnowledge_avg_score + ggtitle("") + ylab("")) /
-  (whereRunPlot + ggtitle("") + ylab("")) + 
+  (whereRunPlot + ggtitle("") + ylab("")) +
   plot_annotation(title = "User technological comfort",
                   #caption = 'A: We asked respondents "How would you rate your knowledge of or comfort with these technologies or data features?" Respondents identified as potential users were not asked about technologies or data features on the AnVIL. All respondents were asked about technologies separate from the AnVIL. Comfort scores for each technology or data feature were averaged within user cohorts to find an average knowledge or comfort score. Except for Galaxy, potential users tend to report lower comfort levels for the various tools and technologies when compared to returning users. Overall, there is less comfort with containers or workflows than using various programming languages and integrated development environments (IDEs). B: We asked all respondents "Where do you currently run analyses?" Respondents could select multiple choices. Institutional HPC and locally run (personal computers) are the most common responses. Google Cloud Platform (GCP) is reported as used more than other cloud providers within this sample. We also see that potential users report using Galaxy (a free option) more than returning users do.',
                   tag_levels = "A",
@@ -189,8 +185,5 @@ ggsave(here("plots/awareness_panels.png"), width=16, height=10, units="in")
                                 #plot.caption = ggtext::element_textbox_simple(hjust = 0),
                                 plot.tag = element_text(face = "bold")))
 
-ggsave(here("plots/user_tech_comfort_panels.png"), width=10, height=12, units="in")
+#ggsave(here("plots/user_tech_comfort_panels.png"), width=10, height=12, units="in")
 ```
-
-
-
