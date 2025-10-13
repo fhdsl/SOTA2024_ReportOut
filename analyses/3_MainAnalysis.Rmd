@@ -2,7 +2,7 @@
 title: "State of the AnVIL 2024"
 subtitle: "Main analysis"
 author: "Kate Isaac, Elizabeth Humphries, & Ava Hoffman"
-date: "`r Sys.Date()`"
+date: "2025-10-08"
 output: html_document
 ---
 

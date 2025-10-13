@@ -10,6 +10,7 @@ library(here)
 library(tidyverse)
 library(ggVennDiagram)
 library(magrittr)
+library(patchwork)
 ```
 
 ```{r, message = FALSE}
@@ -23,6 +24,7 @@ poll_closing_day <- "2024-03-25"
 nresponses <- nrow(resultsTidy)
 ```
 
+
 ```{r}
 Mode <- function(x) {
   ux <- unique(x)
@@ -34,35 +36,254 @@ Mode <- function(x) {
 
 Responses made at the beginning of the Results section describing responses received have code supporting them here.
 
+<details><summary>Code for making tables to look at the response distribution data</summary>
+
+```{r}
+socialMedia <-data.frame(
+  media = c("AnVIL-mailing-list", "X", "FH-Data Slack" , "X", "X", "X", "AnVIL-mailing-list", "X"),
+  date = ymd(c("2024-02-15", "2024-02-15", "2024-02-16", "2024-02-26", "2024-03-05", "2024-03-11", "2024-03-13", "2024-03-14")))
+
+```
+
+```{r}
+allDatesDf <- data.frame(date = ymd(seq.Date(as.Date(poll_opening_day), as.Date(poll_closing_day), by = "days")), count = 0)
+
+responseDf <- resultsTidy %>% 
+  select(Timestamp, UserType, FurtherSimplifiedDegrees, institutionID) %>% 
+  mutate(date = ymd(as_date(ymd_hms(Timestamp)))) %>% 
+  group_by(date, UserType, FurtherSimplifiedDegrees, institutionID) %>% 
+  summarize(count = n())
+
+toPlot <- right_join(responseDf, allDatesDf, by="date") %>%
+  mutate(count = coalesce(count.x, count.y)) %>% #this is setting days without a timestamp to 0 and adding a 0 to days with responses
+  select(!c(count.x, count.y)) 
+
+responses_only <- toPlot %>%
+  ungroup() %>%
+  select(date, count) %>%
+  group_by(date) %>%
+  summarize(daily_count = sum(count))
+```
+
+</details>
+
+---
+
 > Responses were received on days without advertisement
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+
+plot_aesthetics <- function(gplot, ylabel = "", xticks = TRUE, legend = FALSE, bar = FALSE, xmin=ymd(as.Date(poll_opening_day)), xmax=ymd(as.Date(poll_closing_day))){
+  gplot <- gplot +
+    theme_bw() +
+    xlab("") +
+    ylab(ylabel)
+  
+  if(bar){
+    gplot <- gplot +
+      scale_x_date(limits=c(xmin-1, xmax+1), breaks = seq.Date(xmin, xmax, by="days"), labels = seq.Date(xmin, xmax, by="days"))
+  } else{
+    gplot <- gplot +
+      scale_x_date(limits=c(xmin, xmax), breaks = seq.Date(xmin, xmax, by="days"), labels = seq.Date(xmin, xmax, by="days"))
+  }
+  
+  if(xticks){
+    gplot <- gplot +
+      theme(axis.text.x = element_text(angle = 45, hjust=1))
+  } else{
+    gplot <- gplot +
+      theme(axis.text.x = element_blank())
+  }
+  
+  if(legend){
+    gplot <- gplot +
+      theme(legend.position = "bottom")
+  } else{
+    gplot <- gplot +
+      theme(legend.position = "none")
+  }
+    
+  return(gplot)
+}
+
+p1 <- toPlot %>%
+  ungroup() %>%
+  select(date, count) %>%
+  group_by(date) %>%
+  summarize(daily_count = sum(count)) %>%
+  ggplot(aes(x = date, y = daily_count)) +
+  geom_point() + 
+  geom_line()
+
+p1 <- plot_aesthetics(p1, ylabel = "Daily Response Count", xticks = FALSE)
+
+p2 <- left_join(allDatesDf, socialMedia, by='date', relationship = "many-to-many") %>%
+  drop_na() %>%
+  ggplot(aes(x = date, y = -1, color = media)) +
+  geom_jitter(width=0, height=0.2)
+
+p2 <- plot_aesthetics(p2, ylabel = "Recruitment", legend = TRUE) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+
+```
+
+</details>
+
+```{r}
+p1 / p2 + plot_layout(heights = c(3,1))
+
+```
 
 ---
 
 > Days with advertisement (at least 7 unique days) aligned with or directly preceded receiving responses
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+paste0("Unique days of advertisement (at least): ", length(unique(socialMedia$date)))
+```
+
+</details>
+
+See plot in above subsection for pattern
+
 ---
 
 > The two days with the highest response count (7 and 8 respones) aligned with a user listerv reminder email (2024 - March - 13).
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+highest_days <- responses_only %>% arrange(-daily_count) %>% head(2)
+
+highest_days
+```
+
+```{r}
+highest_days$date %in% socialMedia$date
+
+socialMedia[which(socialMedia$date == highest_days$date[1] | socialMedia$date == highest_days$date[2]),]
+```
+
+</details>
 
 ---
 
 > The average number of responses in a day was about 1
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+paste0("Average daily response count: ", mean(responses_only$daily_count)) #1.25
+```
+
+</details>
+
 ---
 
 > the most common number of responses was 0 (21 different days)
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+most_common <- Mode(responses_only$daily_count)
+
+paste0("Most common daily response count: ", most_common) #0
+paste0("Number of days with 0 reponses : ", sum(responses_only$daily_count == most_common))#21 days with 0 responses
+
+```
+
+</details>
+
 ---
 
-> followed by 1 (8 different days) if restricted to non-zero responses
+> followedby 1 (8 different days) if restricted to non-zero responses
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+responses_only_nz <- responses_only %>%
+  filter(daily_count >=1) #filter out days with a response count of 0
+
+most_common_withoutZeros <- Mode(responses_only_nz$daily_count)
+paste0("Most common daily response count (ignoring days without responses): ", most_common_withoutZeros) #1
+paste0("Number of days with ", most_common_withoutZeros, " responses: ", sum(responses_only$daily_count == most_common_withoutZeros)) #8 days with 1 response
+```
+
+</details>
 
 ---
 
 > When considering the institutional affiliation of respondents, there were no higher than 2 responses from users from the same instutitution on any one day.
 
+The raw institutional affiliation was removed from the tidy data since it could be identifying, however, we used an institutional ID in place of it that we can check. 
+
+<details><summary> Code making a plot to support the above statement </summary>
+
+```{r}
+p3 <- toPlot %>%
+  ungroup() %>%
+  select(date, institutionID, count) %>%
+  group_by(date, institutionID) %>%
+  summarize(daily_inst_count = sum(count)) %>%
+  drop_na() %>%
+  ggplot(aes(x = date, y = daily_inst_count, fill = institutionID)) +
+  geom_bar(stat="identity", color = 'white')
+
+p3 <- plot_aesthetics(p3, ylabel = "Institutional Responses", bar = TRUE, xticks = FALSE) + scale_fill_viridis_d()
+```
+
+</details>
+
+```{r}
+p3 / p2 + plot_layout(heights = c(3,1))
+```
+
+While visual support for this statement is in the plot, it may be difficult to distinguish sometimes, so if we try to filter a daily institutional count to days with greater than 2 responses from the same institutional ID, no rows are retained
+
+<details><summary>Code supporting the above statement</summary>
+
+```{r}
+toPlot %>%
+  ungroup() %>%
+  select(date, institutionID, count) %>%
+  group_by(date, institutionID) %>%
+  summarize(daily_inst_count = sum(count)) %>%
+  drop_na() %>%
+  filter(daily_inst_count > 2)
+```
+
+</details>
+
 ---
 
 > Both potential and returning users responded throughout the time period with no discernible pattern related to recruitment method.
+
+<details><summary>Code to make a plot to support the above statement</summary>
+
+```{r}
+p4 <- toPlot %>%
+  ungroup() %>%
+  select(date, UserType, count) %>%
+  group_by(date, UserType) %>%
+  summarize(daily_usertype_count = sum(count)) %>%
+  drop_na() %>%
+  ggplot(aes(x = date, y = daily_usertype_count, fill = UserType)) +
+  geom_bar(stat = "identity")
+
+p4 <- plot_aesthetics(p4, ylabel = "Usertype Responses", legend = TRUE, bar = TRUE, xticks = FALSE)
+
+```
+
+<details>
+
+```{r}
+p4 / p2 + plot_layout(heights = c(3,1))
+```
 
 ---
 

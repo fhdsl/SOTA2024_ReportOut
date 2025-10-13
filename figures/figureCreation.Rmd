@@ -1,7 +1,8 @@
 ---
 title: "Report Out Figures"
+author: "Kate Isaac and Ava Hoffman"
 output: html_document
-date: ""
+date: "2025-10-08"
 ---
 
 ```{r, message = FALSE, echo = FALSE,results='hide', warning=FALSE}

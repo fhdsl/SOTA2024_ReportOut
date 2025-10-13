@@ -1,7 +1,7 @@
 ---
 title: "Tidy Data"
 author: "Kate Isaac, Elizabeth Humphries, & Ava Hoffman"
-date: "`r Sys.Date()`"
+date: "2025-10-08"
 output: html_document
 ---
 
@@ -200,7 +200,14 @@ resultsTidy %<>%
         "yikongene" = "Yikon Genomics",
         "v" = "Unknown"
       )
-  )
+  ) %>%
+  mutate(group_col = factor(InstitutionalAffiliation, 
+                            levels = sample(unique(InstitutionalAffiliation))
+                            )
+        ) %>%
+  group_by(group_col) %>%
+  mutate(institutionID = factor(cur_group_id())) %>%
+  ungroup()
 ```
 
 Elizabeth Humphries grouped institutional affiliations into a limited set of categories: R1 University, R2 University, Community College, Medical Center or School, International Location, Research Center, NIH, Industry, Unknown and we notated those groupings/labels within the `institution_codebook.txt` data file, . Grouping into limited institutional affiliation categories allows us to consolidate free answers for easier data visualization and identification of trends.

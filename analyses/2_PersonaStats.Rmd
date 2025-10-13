@@ -1,7 +1,7 @@
 ---
 title: "Personas"
 author: "Kate Isaac"
-date: "`r Sys.Date()`"
+date: "2025-10-08"
 output: html_document
 ---
 
@@ -9,10 +9,11 @@ output: html_document
 library(dplyr)
 library(magrittr)
 library(here)
+library(tidyverse)
 ```
 
 ```{r, message = FALSE}
-source(knitr::purl(here("analyses/1_TidyData.Rmd"), quiet=TRUE)) # Intended for interactive analysis
+resultsTidy <- readRDS(here("data/wrangled_data/resultsTidy.rds"))
 ```
 
 ```{r}
