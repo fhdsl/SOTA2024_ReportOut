@@ -9,6 +9,7 @@ output: html_document
 library(here)
 library(tidyverse)
 library(ggVennDiagram)
+library(magrittr)
 ```
 
 ```{r, message = FALSE}
@@ -533,31 +534,152 @@ resultsTidy %>%
 
 #### Figure 4 - Kind of Work
 
+<details><summary> Making a table for this data/question on kind of work selections </summary>
+
+```{r}
+kindOfWorkDF <-
+  resultsTidy %>%
+  select(Timestamp, KindOfWork) %>%
+  separate_longer_delim(KindOfWork, delim = ", ") %>%
+  mutate(
+    KindOfWork = recode(KindOfWork, "Program administration," = "Program administration", "computational education" = "Computational education"),
+    value = TRUE
+  ) %>%
+  pivot_wider(names_from = KindOfWork, values_from = value, values_fill = FALSE)
+```
+
+</details>
+
+---
+
 > 44% (n=22) selected only 1 description, 36% (n=18) selected 2 descriptions, 16% (n=8) selected 3 descriptions, and 4% (n=2) selected 5 descriptions.
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+numSelected <- kindOfWorkDF %>%
+  select(!Timestamp) %>%
+  rowSums()
+
+numSelectedDF <- tibble("num_descriptions_selected" = numSelected) %>%
+  count(num_descriptions_selected) %>%
+  mutate(percentage_responses = round(n / nresponses * 100, 0))
+
+numSelectedDF
+```
+
+</details>
 
 ---
 
 > “Computational work” was the most frequently selected response, reported by 68% of respondents (n=34)
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+numResponsesPerDescription <- data.frame("n" = colSums(kindOfWorkDF[, 2:ncol(kindOfWorkDF)])) %>%
+  rownames_to_column("work_description") %>%
+  mutate(percentage_responses = round(n / nresponses * 100, 0)) %>%
+  arrange(-n)
+
+numResponsesPerDescription %>% head(1)
+```
+
+</details>
+
 ---
 
 > “Project management” at 36% (n=18) 
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+numResponsesPerDescription %>% filter(str_detect(work_description, "management"))
+```
+
+</details>
 
 ---
 
 > “Project leadership” at 24% (n=12) respectively.
 
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+numResponsesPerDescription %>% filter(str_detect(work_description, "leadership"))
+```
+
+</details>
+
 ---
 
-> Of the 22 respondents who selected only 1 description, “Computational work” was the most frequently selected (n=13, 59%)
+> Of the 22 respondents who selected only 1 description, 
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+singleResponseRows <- which(rowSums(kindOfWorkDF[2:ncol(kindOfWorkDF)]) == 1) # these rows are responses where they only provided one description
+
+singleResponseDF <- tibble("description" = unlist(lapply(1:length(singleResponseRows), function(x) colnames(kindOfWorkDF)[which(kindOfWorkDF[singleResponseRows[x], ] == TRUE)]))) %>% # for those rows, find the corresponding columns that are true and add the column names to a vector
+  count(description) %>% # count the number of times each of those descriptions is there 
+  mutate(percentage_singleResponses = n / sum(n) * 100) %>%
+  arrange(-n) # arrange in descending order
+  
+singleResponseDF %>% 
+  select(n) %>% 
+  sum()  
+```
+
+</details>
+
+---
+
+> “Computational work” was the most frequently selected (n=13, 59%) [of only 1 description]
+
+<details><summary> Code supporting the above statement </summary>
+
+```{r}
+singleResponseDF %>% head(1)
+```
+
+</details>
 
 ---
 
 > Of the responses who selected more than one description, “Computational work” was paired most frequently with “Project management” or “Project leadership”. (n=11 and 7 respectively)
 
----
+<details><summary> Code supporting the above statement </summary>
 
-> Two respondents utilized the “Other” option, each supplying one work description. These included “Cloud Architect” and “Software Development”
+```{r}
+find_pairs <- function(inputDF, rowOI) {
+  pairs <- c()
+  notNA_cols_combos <- t(combn(which(inputDF[rowOI, ] == TRUE), 2)) # rows will be indices for each pair
+  for (rowIndex in 1:nrow(notNA_cols_combos)) {
+    pairs <- c(pairs, paste0(unlist(colnames(inputDF)[notNA_cols_combos[rowIndex, ]]), collapse = "-"))
+  }
+  return(pairs)
+}
+```
+
+```{r}
+kindOfWorkDF_subset <- kindOfWorkDF[which(rowSums(kindOfWorkDF[, 2:ncol(kindOfWorkDF)]) > 1), -c(1)]
+
+pairs_all <- unlist(lapply(
+  1:nrow(kindOfWorkDF_subset),
+  function(x) find_pairs(kindOfWorkDF_subset, x)
+)) %>%
+  as.data.frame() %>%
+  `colnames<-`(c("pairs")) %>%
+  group_by(pairs) %>%
+  mutate(count = n()) %>%
+  ungroup() %>%
+  distinct() %>%
+  arrange(-count)
+
+print(pairs_all, n = nrow(pairs_all))
+```
+
+</details>
 
 ---
 
