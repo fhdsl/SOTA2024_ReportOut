@@ -26,7 +26,10 @@ These are codebook files created by the analysts explaining the columns in the r
 * `1_TidyData.Rmd`: Fetching of Raw Data and wrangling steps for later analysis to create a de-identified tidy data file.
 * `2_PersonaStats.Rmd`: Identification of personas and joining of persona categorization with tidy data.
 * `3_MainAnalysis.Rmd`: Main analysis and plotting driver
-* `4_Stats.Rmd`: Code to support all stated stats/general observations in the report out that aren't directly observed from plots/figures.
+* `4_Stats.Rmd`: Code to support all stated stats/general observations in the report out that aren't directly observed from plots/figures. Description of format for this:
+    * Chronological order of statements and sections aligning with layout of the preprint
+    * For each section, if there's a table that is used to support multiple statements, table is constructed within an expandable details section prior to any direct statements from the preprint
+    * For each statement, there's a section separator and the specific statement, followed by an exapandable details section with code to show the support for the statement.
 
 ### resources
 
