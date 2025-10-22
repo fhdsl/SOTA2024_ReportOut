@@ -33,7 +33,7 @@ These are codebook files created by the analysts explaining the columns in the r
 
 ### reports
 
-This directory contains corresponding knit HTML files for each of the R Markdown files in the `analyses` directory.  
+This directory contains corresponding knit HTML files for each of the R Markdown files in the `analyses` directory and the figure creation R Markdown in the `figures` directory.  
 
 ### resources
 
