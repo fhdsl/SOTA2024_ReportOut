@@ -31,6 +31,10 @@ These are codebook files created by the analysts explaining the columns in the r
     * For each section, if there's a table that is used to support multiple statements, table is constructed within an expandable details section prior to any direct statements from the preprint
     * For each statement, there's a section separator and the specific statement, followed by an exapandable details section with code to show the support for the statement.
 
+### reports
+
+This directory contains corresponding knit HTML files for each of the R Markdown files in the `analyses` directory.  
+
 ### resources
 
 * `scripts/shared_functions.R`: some functions used repeatedly in analysis or for plotting
