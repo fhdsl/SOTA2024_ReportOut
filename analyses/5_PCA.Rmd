@@ -1,0 +1,280 @@
+---
+title: "PCA"
+author: "Kate Isaac"
+output: html_document
+---
+
+# PCA for all respondents
+
+## Load Tidy Data and packages
+
+```{r, message = FALSE}
+library(here)
+library(tidyverse)
+
+resultsTidy <- readRDS(here("data/wrangled_data/resultsTidy_personas.rds"))
+```
+
+## Subset to 
+
+* categorical or a score
+* non-free text data 
+* isn't related to usertype or persona categorizations
+
+```{r}
+pca_data_ar <- resultsTidy %>%
+  select(!c(Timestamp,
+            CurrentUsageDescription,
+            Degrees, #has FurtherSimplifiedDegrees
+            ConsortiaAffiliations,
+            AllTechPython, #has a Score_ equivalent
+            AllTechJupyterNotebooks, #has a Score_ equivalent
+            AllTechR, #has a Score_ equivalent
+            AllTechRStudio, #has a Score_ equivalent
+            AllTechBioconductor, #has a Score_ equivalent
+            AllTechGalaxy, #has a Score_ equivalent
+            AllTechWorkflows, #has a Score_ equivalent
+            AllTechContainers, #has a Score_ equivalent
+            AllTechCommandLine, #has a Score_ equivalent
+            HumanGenomicExperience, #will use humanGenomicFlag instead
+            NonHumanGenomicExperience, #will use nonHumanGenomicFlag instead
+            HumanClinicalExperience, #will use clinicalFlag instead
+            AnVILDemo, #will use AnVILDemoAwareness and AnVILDemoUse instead
+            AnVILSupportForum, #will use forumAwareness and forumUse instead
+            ContactWillingness,
+            UserType,
+            group_col,
+            institutionID,
+            InstitutionalType,
+            clinical_flag, #persona related
+            compOnly_flag, #persona related
+            education_flag, #persona related
+            decision_flag, #persona related
+            admin_flag, #persona related
+            persona
+            )
+         )
+```
+
+## Combine Potential_ and Returning_ variables to remove NAs when possible and remove Returning_ variable (or variables for returning user specific questions) if there's no equivalent Potential_
+
+```{r}
+pca_data_ar <- pca_data_ar %>%
+  select(!any_of(c(
+    starts_with("ReturningAnVILTech"),
+    starts_with("Score_ReturningAnVILTech")
+    ))) %>%
+  mutate(RankEasyBillingSetup = coalesce(PotentialRankEasyBillingSetup, 
+                                         ReturningRankEasyBillingSetup),
+         RankFlateRateBilling = coalesce(PotentialRankFlatRateBilling,
+                                         ReturningRankFlatRateBilling),
+         RankFreeVersion = coalesce(PotentialRankFreeVersion,
+                                    ReturningRankFreeVersion),
+         RankSupportDocs = coalesce(PotentialRankSupportDocs,
+                                    ReturningRankSupportDocs),
+         RankToolsData = coalesce(PotentialRankToolsData,
+                                  ReturningRankToolsData),
+         RankCommunityAdoption = coalesce(PotentialRankCommunityAdoption,
+                                          ReturningRankCommunityAdoption)
+         ) %>%
+  select(!any_of(c(
+    starts_with("PotentialRank"),
+    starts_with("ReturningRank")
+  ))) %>% 
+  select(!c(LengthOfUse,
+            FeatureMostAppreciated,
+            NeededResources,
+            RecommendationLikelihood,
+            OtherExamplesAnVILTrainingWorkshops
+  ))
+```
+
+
+## Turn into vectors 
+
+### Comma separated columns
+
+```{r}
+vectorize_comma <- function(pca_data_ar, column_name){
+    return(t(
+      sapply(strsplit(tolower(pca_data_ar[[column_name]]), ", "), function(x)
+        table(factor(x, 
+                     levels = unique(unlist(strsplit(tolower(pca_data_ar[[column_name]]), ", ")
+                                            )
+                                     )
+                     )
+              )
+        )
+    ) %>%
+      as.data.frame()
+  )
+}
+```
+
+```{r}
+#Industry
+vectorized_industry <- vectorize_comma(pca_data_ar, "Industry")
+  
+```
+
+```{r}
+#KindOfWork
+vectorized_kow <- vectorize_comma(pca_data_ar, "KindOfWork") %>%
+  mutate("program_administration" = rowSums(select(., "program administration", "program administration,"), na.rm = TRUE)) %>%
+  select(!c("cloud architect", "software development", "program administration", "program administration,")) #remove the ones that got combined and ones provided through "Other" submission
+```
+
+```{r}
+#TypesOfData
+vectorized_datatypes <- vectorize_comma(pca_data_ar, "TypesOfData") %>%
+  select(!c("used in training for analysis of genomes (variant calling)", "i don't analyze data on anvil", "i store data in anvil. i don’t analyze it.")) #remove the ones provided through "Other submission"
+```
+
+```{r}
+#AccessWhichControlledData
+vectorized_controlledaccess <- vectorize_comma(pca_data_ar, "AccessWhichControlledData") %>%
+  select(!c("gnomad and clinvar", "cancer omics datasets", "tcga", "being able to pull other dbgap data as needed."))
+```
+
+```{r}
+#WhereAnalysesRun
+vectorized_whereanalyses <- vectorize_comma(pca_data_ar, "WhereAnalysesRun") %>%
+  mutate(galaxy = rowSums(select(., "galaxy australia", "galaxy (usegalaxy.org)"), na.rm = TRUE),
+         hpc = pmin(1, rowSums(select(., "institutional high performance computing cluster (hpc)", "local server"))),
+         locally = rowSums(select(., "personal computer (locally)", "personal computer (locally),"))) %>%
+  select(!c("sciserver.org", "all of us", "ukbb rap", "institutional high performance computing cluster (hpc)", "local server", "galaxy australia", "galaxy (usegalaxy.org)", "personal computer (locally)", "personal computer (locally),"))
+```
+
+```{r}
+#RepositoriesDMS
+vectorized_dms <- vectorize_comma(pca_data_ar, "RepositoriesDMS") %>%
+  select(!c("geo", "encode", "biodata catalyst", "dbgap", "nemo", "sra", "dbgap & ega", "github", "google drive"))
+```
+
+```{r}
+#FundingSources
+vectorized_funding <- vectorize_comma(pca_data_ar, "FundingSources") %>%
+  select(!c("nsf"))
+```
+
+#### remove columns that were vectorized and add back the columns from the vectorized output
+
+```{r}
+pca_data_ar <- pca_data_ar %>%
+  select(!c(Industry, 
+            KindOfWork, 
+            TypesOfData, 
+            AccessWhichControlledData, 
+            WhereAnalysesRun, 
+            RepositoriesDMS, 
+            FundingSources)) %>%
+  cbind(vectorized_industry, 
+        vectorized_kow, 
+        vectorized_datatypes, 
+        vectorized_controlledaccess, 
+        vectorized_whereanalyses, 
+        vectorized_dms, 
+        vectorized_funding)
+```
+
+### Categorical but not factor vectorized yet
+
+```{r}
+pca_data_ar <- pca_data_ar %>%
+  mutate(across(c(FurtherSimplifiedInstitutionalType, FurtherSimplifiedDegrees, clinicalFlag, humanGenomicFlag, nonHumanGenomicFlag, AnVILDemoAwareness, AnVILDemoUse, forumAwareness, forumUse), ~as.integer(as.factor(.)), .names = "{.col}"))
+```
+
+## Confirm the columns are all numeric now
+
+```{r}
+pca_data_ar %>% select(where(is.numeric)) %>% ncol() == ncol(pca_data_ar)
+```
+
+
+## Want to keep CurrentUsageDescription/UserType and persona for later visualization
+
+```{r}
+annot_data <- resultsTidy %>%
+  select(CurrentUsageDescription, UserType, persona)
+```
+
+
+## PCA for all users
+
+```{r}
+data.pca <- prcomp(pca_data_ar, center = TRUE, scale. = TRUE)
+```
+
+### Elbow plot
+
+```{r}
+plot(data.pca, type = "l") #how many PCs to keep before we see the elbow
+```
+
+```{r}
+summary(data.pca)
+```
+
+### Combine annotation data with PCA fit
+
+```{r}
+toPlot <- cbind(data.pca$x, annot_data)
+```
+
+### PC1 vs PC2 colored by Usertype
+
+```{r}
+toPlot %>% ggplot(aes(x = PC1, y = PC2, color = UserType)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC2 vs PC3 colored by Usertype
+
+```{r}
+toPlot %>% ggplot(aes(x = PC2, y = PC3, color = UserType)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC1 vs PC3 colored by Usertype
+
+```{r}
+toPlot %>% ggplot(aes(x = PC1, y = PC3, color = UserType)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC1 vs PC2 colored by Use description
+
+```{r}
+toPlot %>% ggplot(aes(x = PC1, y = PC2, color = CurrentUsageDescription)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC2 vs PC3 colored by Use description
+
+```{r}
+toPlot %>% ggplot(aes(x = PC2, y = PC3, color = CurrentUsageDescription)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC1 vs PC3 colored by Use description
+
+```{r}
+toPlot %>% ggplot(aes(x = PC1, y = PC3, color = CurrentUsageDescription)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC1 vs PC2 colored by persona
+
+```{r}
+toPlot %>% ggplot(aes(x = PC1, y = PC2, color = persona)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC2 vs PC3 colored by persona
+
+```{r}
+toPlot %>% ggplot(aes(x = PC2, y = PC3, color = persona)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+### PC1 vs PC3 colored by persona
+
+```{r}
+toPlot %>% ggplot(aes(x = PC1, y = PC3, color = persona)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
+```
+
+# PCA for just returning users
+
+To do next. Will remove potential user responses and keep the returning user specific data that I had removed for the previous PCA.
