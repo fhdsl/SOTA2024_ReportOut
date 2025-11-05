@@ -215,6 +215,13 @@ plot(data.pca, type = "l") #how many PCs to keep before we see the elbow
 summary(data.pca)
 ```
 
+### PCA loadings
+
+```{r}
+pca.var <- factoextra::get_pca_var(data.pca)
+ggcorrplot::ggcorrplot(pca_var$cos2[, 1:4]) + theme(legend.position = "none", margins = margin(0,5,0,25, unit = "mm")) 
+```
+
 ### Combine annotation data with PCA fit
 
 ```{r}
