@@ -1,6 +1,6 @@
 ---
 title: "PCA"
-author: "Kate Isaac"
+author: "Kate Isaac and Ava Hoffman"
 output: html_document
 ---
 
