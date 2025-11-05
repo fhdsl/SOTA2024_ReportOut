@@ -11,6 +11,8 @@ output: html_document
 ```{r, message = FALSE}
 library(here)
 library(tidyverse)
+library(factoextra)
+library(ggcorrplot)
 
 resultsTidy <- readRDS(here("data/wrangled_data/resultsTidy_personas.rds"))
 ```
@@ -92,7 +94,7 @@ pca_data_ar <- pca_data_ar %>%
 
 ## Turn into vectors 
 
-### Comma separated columns
+### Comma separated columns (making one hot encoded output)
 
 ```{r}
 vectorize_comma <- function(pca_data_ar, column_name){
@@ -217,9 +219,13 @@ summary(data.pca)
 
 ### PCA loadings
 
-```{r}
+```{r, fig.width = 5, fig.height = 8}
 pca.var <- factoextra::get_pca_var(data.pca)
-ggcorrplot::ggcorrplot(pca_var$cos2[, 1:4]) + theme(legend.position = "none", margins = margin(0,5,0,25, unit = "mm")) 
+ggcorrplot::ggcorrplot(pca.var$cos2[, 1:4]) + 
+  theme(legend.position = "none",
+        axis.text.y = element_text(size = 7),
+        plot.margin = margin(0,5,0,25, unit = "mm")) +
+  coord_flip()
 ```
 
 ### Combine annotation data with PCA fit
@@ -281,7 +287,3 @@ toPlot %>% ggplot(aes(x = PC2, y = PC3, color = persona)) + geom_point() + theme
 ```{r}
 toPlot %>% ggplot(aes(x = PC1, y = PC3, color = persona)) + geom_point() + theme_bw() + theme(legend.position = "bottom")
 ```
-
-# PCA for just returning users
-
-To do next. Will remove potential user responses and keep the returning user specific data that I had removed for the previous PCA.
