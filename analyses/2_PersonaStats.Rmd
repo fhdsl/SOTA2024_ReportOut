@@ -19,7 +19,7 @@ resultsTidy <- readRDS(here("data/wrangled_data/resultsTidy.rds"))
 ```{r}
 kindOfWorkDF <-
   resultsTidy %>%
-  select(Timestamp, KindOfWork) %>%
+  select(TimestampID, KindOfWork) %>%
   separate_longer_delim(KindOfWork, delim = ", ") %>%
   mutate(
     KindOfWork = recode(KindOfWork, "Program administration," = "Program administration", "computational education" = "Computational education"),
@@ -34,7 +34,7 @@ add a column with the count of number of descriptions for each respondent and th
 
 ```{r}
 numSelected <- kindOfWorkDF %>%
-  select(!Timestamp) %>%
+  select(!TimestampID) %>%
   rowSums()
 
 numSelectedDF <- tibble("X" = numSelected) %>%
@@ -184,15 +184,15 @@ which_rows <- which(rowSums(resultsTidy[, c(
 )]) == 2)
 
 updates <- data.frame(
-  Timestamp =
-    c(resultsTidy$Timestamp[which_rows[1]], resultsTidy$Timestamp[which_rows[2]]),
+  TimestampID =
+    c(resultsTidy$TimestampID[which_rows[1]], resultsTidy$TimestampID[which_rows[2]]),
   education_flag =
     c(TRUE, FALSE),
   decision_flag =
     c(FALSE, TRUE)
 )
 
-resultsTidy %<>% dplyr::rows_update(updates, by = "Timestamp")
+resultsTidy %<>% dplyr::rows_update(updates, by = "TimestampID")
 ```
 
 ## Assign persona categories and save data (contact willingness, timestamp, UserType etc) for each persona

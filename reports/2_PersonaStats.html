@@ -364,7 +364,7 @@ library(tidyverse)</code></pre>
 <pre class="r"><code>resultsTidy &lt;- readRDS(here(&quot;data/wrangled_data/resultsTidy.rds&quot;))</code></pre>
 <pre class="r"><code>kindOfWorkDF &lt;-
   resultsTidy %&gt;%
-  select(Timestamp, KindOfWork) %&gt;%
+  select(TimestampID, KindOfWork) %&gt;%
   separate_longer_delim(KindOfWork, delim = &quot;, &quot;) %&gt;%
   mutate(
     KindOfWork = recode(KindOfWork, &quot;Program administration,&quot; = &quot;Program administration&quot;, &quot;computational education&quot; = &quot;Computational education&quot;),
@@ -377,7 +377,7 @@ library(tidyverse)</code></pre>
 respondent and then use the table function to see how many responses
 gave 1, 2, 3, … descriptions for their kind of work</p>
 <pre class="r"><code>numSelected &lt;- kindOfWorkDF %&gt;%
-  select(!Timestamp) %&gt;%
+  select(!TimestampID) %&gt;%
   rowSums()
 
 numSelectedDF &lt;- tibble(&quot;X&quot; = numSelected) %&gt;%
@@ -593,15 +593,15 @@ retained.</p>
 )]) == 2)
 
 updates &lt;- data.frame(
-  Timestamp =
-    c(resultsTidy$Timestamp[which_rows[1]], resultsTidy$Timestamp[which_rows[2]]),
+  TimestampID =
+    c(resultsTidy$TimestampID[which_rows[1]], resultsTidy$TimestampID[which_rows[2]]),
   education_flag =
     c(TRUE, FALSE),
   decision_flag =
     c(FALSE, TRUE)
 )
 
-resultsTidy %&lt;&gt;% dplyr::rows_update(updates, by = &quot;Timestamp&quot;)</code></pre>
+resultsTidy %&lt;&gt;% dplyr::rows_update(updates, by = &quot;TimestampID&quot;)</code></pre>
 </div>
 </div>
 <div id="assign-persona-categories-and-save-data-contact-willingness-timestamp-usertype-etc-for-each-persona" class="section level2">

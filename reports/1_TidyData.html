@@ -361,7 +361,8 @@ Hoffman</h4>
 <pre class="r"><code>library(googlesheets4)
 library(tidyverse)
 library(magrittr) #for %&lt;&gt;%
-library(here)</code></pre>
+library(here)
+library(lubridate)</code></pre>
 <div id="read-in-data" class="section level1">
 <h1>Read in data</h1>
 <p>Data were read in via a Google Sheet on the AnVIL Team Drive.</p>
@@ -500,6 +501,12 @@ nrow(resultsTidy) #50</code></pre>
 <pre><code>## [1] 50</code></pre>
 <pre class="r"><code>resultsTidy %&lt;&gt;% select(!Email) #remove identifying information</code></pre>
 </details>
+</div>
+<div id="replace-timestamp-with-just-a-date-to-obscure-possibly-identifying-information" class="section level2">
+<h2>Replace timestamp with just a date to obscure possibly identifying
+information</h2>
+<pre class="r"><code>resultsTidy %&lt;&gt;% mutate(TimestampID = as.integer(as.factor(Timestamp)),
+                        Timestamp = as_date(Timestamp))</code></pre>
 </div>
 <div id="identify-type-of-user" class="section level2">
 <h2>Identify type of user</h2>

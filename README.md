@@ -30,6 +30,7 @@ These are codebook files created by the analysts explaining the columns in the r
     * Chronological order of statements and sections aligning with layout of the preprint
     * For each section, if there's a table that is used to support multiple statements, table is constructed within an expandable details section prior to any direct statements from the preprint
     * For each statement, there's a section separator and the specific statement, followed by an expandable details section with code to show the support for the statement.
+* `5_PCA.Rmd`: Performs PCA analysis for all respondents after subsetting and wrangling the data
 
 ### reports
 
@@ -38,10 +39,12 @@ This directory contains corresponding knit HTML files for each of the R Markdown
 ### resources
 
 * `scripts/shared_functions.R`: some functions used repeatedly in analysis or for plotting
+* `plots/`: plots from the main analysis saved as png files
 
 ### figures
 
 * `figureCreation.Rmd`: Uses `patchwork` to combine plots from `3_MainAnalysis.Rmd`to make figure panels and adjusts aesthetics as necessary.
+* The figure panels themselves are saved as png files within this directory as well
 
 ## Other notes:
 

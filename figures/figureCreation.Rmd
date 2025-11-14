@@ -59,11 +59,11 @@ tidy_results_withPersona <- readRDS(here("data/wrangled_data/resultsTidy_persona
 
 kowpersona <- full_join(
   tidy_results_withPersona %>%
-    select(persona, Timestamp) %>%
-    mutate(Timestamp = factor(Timestamp),
+    select(persona, TimestampID) %>%
+    mutate(TimestampID = factor(TimestampID),
            persona = na_if(persona, "None assigned")),
-  dfForPlotKOW, by = "Timestamp") %>%
-  group_by(UserType, persona, Timestamp) %>%
+  dfForPlotKOW, by = "TimestampID") %>%
+  group_by(UserType, persona, TimestampID) %>%
   mutate(Time_ID = cur_group_id()) %>%
   ungroup()
 

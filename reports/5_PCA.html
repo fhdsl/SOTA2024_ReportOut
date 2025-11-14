@@ -375,6 +375,7 @@ resultsTidy &lt;- readRDS(here(&quot;data/wrangled_data/resultsTidy_personas.rds
 </ul>
 <pre class="r"><code>pca_data_ar &lt;- resultsTidy %&gt;%
   select(!c(Timestamp,
+            TimestampID,
             CurrentUsageDescription,
             Degrees, #has FurtherSimplifiedDegrees
             ConsortiaAffiliations,
