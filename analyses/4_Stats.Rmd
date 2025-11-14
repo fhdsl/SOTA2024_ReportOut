@@ -760,7 +760,7 @@ resultsTidy %>%
 ```{r}
 kindOfWorkDF <-
   resultsTidy %>%
-  select(Timestamp, KindOfWork) %>%
+  select(TimestampID, KindOfWork) %>%
   separate_longer_delim(KindOfWork, delim = ", ") %>%
   mutate(
     KindOfWork = recode(KindOfWork, "Program administration," = "Program administration", "computational education" = "Computational education"),
@@ -779,7 +779,7 @@ kindOfWorkDF <-
 
 ```{r}
 numSelected <- kindOfWorkDF %>%
-  select(!Timestamp) %>%
+  select(!TimestampID) %>%
   rowSums()
 
 numSelectedDF <- tibble("num_descriptions_selected" = numSelected) %>%

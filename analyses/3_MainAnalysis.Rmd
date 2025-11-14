@@ -125,13 +125,13 @@ ggsave(here("resources/plots/degree_furthersimplified_usertype.png"), plot = deg
 dfForPlotKOW <- resultsTidy %>%
   separate_longer_delim(KindOfWork,
            delim=", ") %>%
-  select(Timestamp, UserType, KindOfWork) %>%
+  select(TimestampID, UserType, KindOfWork) %>%
   mutate(KindOfWork =
            recode(KindOfWork,
                   "computational education" = "Computational education",
                   "Program administration," = "Program administration"),
          KindOfWork = factor(KindOfWork),
-         Timestamp = factor(Timestamp)
+         TimestampID = factor(TimestampID)
          )
 
 factorLevel <-  as.data.frame(table(dfForPlotKOW$KindOfWork)) %>%
@@ -142,7 +142,7 @@ factorLevel <-  as.data.frame(table(dfForPlotKOW$KindOfWork)) %>%
   rev()
 
 kowPlot <- ggplot(dfForPlotKOW,
-       aes(x = Timestamp,
+       aes(x = TimestampID,
            y = factor(KindOfWork, levels = factorLevel),
            fill = KindOfWork
            )) +
