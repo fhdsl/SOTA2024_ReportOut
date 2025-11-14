@@ -1,5 +1,7 @@
 # SOTA2024_ReportOut
 
+[![DOI](https://zenodo.org/badge/DOI/0.5281/zenodo.17611423.svg)](https://doi.org/0.5281/zenodo.17611423)
+
 This repository contains all of the code to reproduce the analysis done for the State of the AnVIL 2024 Poll.
 
 ## Directory Structure:
