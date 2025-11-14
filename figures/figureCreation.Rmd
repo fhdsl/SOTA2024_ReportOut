@@ -34,7 +34,7 @@ knitr::knit_child(here("analyses/3_MainAnalysis.Rmd"))
                   theme = theme(plot.title = element_text(size = 18),
                                 plot.tag = element_text(face = "bold")))
 
-#ggsave(here("plots/user_identification_panels.png"), width=12, height=16, units = "in")
+ggsave(here("figures/user_identification_panels.png"), width=12, height=16, units = "in")
 ```
 
 ## Figure 3: User research experience  
@@ -48,7 +48,7 @@ genomicsExpPlot_replot /
                                 plot.tag = element_text(face = "bold"))) +
   plot_layout(widths = c(9), heights = c(7, 6))
 
-#ggsave(here("plots/user_research_experience_panels.png"), width=9, height=11, units = "in")
+ggsave(here("figures/user_research_experience_panels.png"), width=9, height=11, units = "in")
 
 ```
 
@@ -125,7 +125,7 @@ p1 / p2 / p3 +
                                 text = element_text(size=16)
                                 ))
 
-#ggsave(here("plots/personas_panels.png"), width=7, height=7, units="in")
+ggsave(here("figures/personas_panels.png"), width=7, height=7, units="in")
 ```
 
 ## Figure 5: User Preferences
@@ -142,7 +142,7 @@ p1 / p2 / p3 +
               axis_title = "collect",
               widths = c(10), heights = c(6, 0.5, 4)) & theme(legend.position = 'bottom')
 
-#ggsave(here("plots/user_preferences_panels.png"), width=10, height=12, units="in")
+ggsave(here("figures/user_preferences_panels.png"), width=10, height=12, units="in")
 ```
 
 ## Figure 6: Support Awareness
@@ -156,7 +156,7 @@ p1 / p2 / p3 +
                                 plot.tag = element_text(face = "bold"))) +
   plot_layout(guides = "collect") & theme(legend.position = "bottom")
 
-#ggsave(here("plots/awareness_panels.png"), width=16, height=10, units="in")
+ggsave(here("figures/awareness_panels.png"), width=16, height=10, units="in")
 ```
 
 ## Figure 7: User Technological Comfort
@@ -169,5 +169,5 @@ p1 / p2 / p3 +
                   theme = theme(plot.title = element_text(size = 18),
                                 plot.tag = element_text(face = "bold")))
 
-#ggsave(here("plots/user_tech_comfort_panels.png"), width=10, height=12, units="in")
+ggsave(here("figures/user_tech_comfort_panels.png"), width=10, height=12, units="in")
 ```

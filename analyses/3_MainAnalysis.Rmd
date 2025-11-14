@@ -38,39 +38,34 @@ knitr::opts_chunk$set(
 
 <details><summary>Description of variable definitions and steps</summary>
 
-First, we group the data by the assigned UserType labels/categories and their related more detailed descriptions. Then we use `summarize` to count the occurrences for each of those categories. We use a mutate statement to better fit the detailed descriptions on the plot. We then send this data to ggplot with the count on the x-axis, and the usage descriptions on the y-axis (ordered by count so highest count is on the top). We fill with the `UserType` description we've assigned. We manually scale the fill to be AnVIL colors and specify we want this to be a stacked bar chart. We then make edits for the theme and labels and finally add a geom_text label for the count next to the bars before we save the plot.
+First, we use a mutate statement to better fit the detailed descriptions on the plot. We then send this data to ggplot which will count the categories for the x-axis, and the usage descriptions on the y-axis (ordered by count so highest count is on the top). We fill with the `UserType` description we've assigned. We make edits for the theme and labels and finally add a geom_text label for the count next to the bars before we save the plot.
 
 </details>
 
-```{r, fig.height = 4, fig.width = 7}
+```{r fig2a, fig.height = 5.5, fig.width = 8.5}
 typeOfUserPlot <- resultsTidy %>%
-  #group_by(UserType, CurrentUsageDescription) %>%
-  #summarize(count = n()) %>%
   mutate(CurrentUsageDescription = case_when(
     CurrentUsageDescription == "For ongoing projects (e.g., consistent project development and/or work)" ~ "For ongoing projects:\nconsistent project development\nand/or work",
     CurrentUsageDescription == "For completed/long-term projects (e.g., occasional updates/maintenance as needed)" ~ "For completed/long-term projects:\noccasional updates/maintenance\nas needed",
     CurrentUsageDescription == "For short-term projects (e.g., short, intense bursts separated by a few months)" ~ "For short-term projects:\nshort, intense bursts\nseparated by a few months",
-    CurrentUsageDescription == "I do not currently use the AnVIL, but have in the past" ~ "I do not current use the AnVIL,\nbut have in the past",
+    CurrentUsageDescription == "I do not currently use the AnVIL, but have in the past" ~ "I do not currently use the AnVIL,\nbut have in the past",
     CurrentUsageDescription == "I have never used the AnVIL, but have heard of it" ~ "I have never\nused the AnVIL",
     CurrentUsageDescription == "I have never heard of the AnVIL" ~ "I have never\nheard of the AnVIL"
   )) %>%
-  ggplot(aes(#x = count,
-             y = fct_rev(fct_infreq(CurrentUsageDescription)),
+  ggplot(aes(y = fct_rev(fct_infreq(CurrentUsageDescription)),
              fill = UserType)) +
-  geom_bar() + #stat="identity", position ="stack") +
+  geom_bar() + 
   ggtitle("How would you describe your current usage\nof the AnVIL platform?") +
   geom_text(aes(label = after_stat(..count..)), stat = "count",
             position = "stack", hjust = -1, size=4
            ) +
       coord_cartesian(clip = "off")
-    #aes(label = count, group = CurrentUsageDescription),
-  #               hjust = -0.5, size=2)
 
 typeOfUserPlot %<>% stylize_bar(labelBars = FALSE)
 
 typeOfUserPlot
 
-#ggsave(here("plots/respondent_usagedescription.png"), plot = typeOfUserPlot) #set plot size
+ggsave(here("resources/plots/respondent_usagedescription.png"), plot = typeOfUserPlot, width = 8.5, height = 5.5, units = "in")
 ```
 
 ## Demographics: Highest Degree
@@ -81,9 +76,7 @@ typeOfUserPlot
 
 <details><summary>Description of variable definitions and steps</summary>
 
-First we use `group_by()` to select`Degrees` and `UserType` in conjunction with `summarize( = n())` to add counts for how many of each combo are observed in the data.
-
-Then we send this data to ggplot and make a bar chart with the x-axis representing the degrees (`reorder`ed by the count number such that higher counts are first (and the sum) because otherwise the 2 MDs are located after the high school and master's in progress bars (1 each)). The y-axis represents the count, and the fill is used to specify user type (returning or potential AnVIL users). We use a stacked bar chart and include labels above each bar of the total sum for that degree type.
+First we send this data to ggplot and make a bar chart with the y-axis representing the degrees (ordering by the count number such that higher counts are first (and the sum) because otherwise the 2 MDs are located after the high school and master's in progress bars (1 each)). The x-axis represents the count, and the fill is used to specify user type (returning or potential AnVIL users). We use a stacked bar chart and include labels above each bar of the total sum for that degree type.
 
 Used [this Stack Overflow post to label sums above the bars](https://stackoverflow.com/questions/30656846/draw-the-sum-value-above-the-stacked-bar-in-ggplot2)
 
@@ -93,16 +86,13 @@ The rest of the changes are related to theme and labels and making sure that the
 
 </details>
 
-```{r, fig.height = 4, fig.width = 7}
+```{r fig2b, fig.height = 5.5, fig.width = 8.75}
 
 degreePlot <- resultsTidy %>%
-  #group_by(FurtherSimplifiedDegrees, UserType) %>%
-  #summarize(n = n()) %>%
-  ggplot(aes(y = fct_rev(fct_infreq(FurtherSimplifiedDegrees)),#reorder(FurtherSimplifiedDegrees, n, sum),
-             #x = n,
+  ggplot(aes(y = fct_rev(fct_infreq(FurtherSimplifiedDegrees)),
              fill = UserType
              )) +
-      geom_bar() + #position = "stack", stat="identity") +
+      geom_bar() + 
       geom_text(
         aes(label = after_stat(..count..)), stat = "count",
         position = "stack", hjust = -1, size=4
@@ -113,7 +103,7 @@ degreePlot %<>% stylize_bar(labelBars = FALSE)
 
 degreePlot
 
-#ggsave(here("plots/degree_furthersimplified_usertype.png")) #set plot size
+ggsave(here("resources/plots/degree_furthersimplified_usertype.png"), plot = degreePlot, width = 8.75, height = 5.5, units = "in")
 ```
 
 ## Demographics: Kind of Work
@@ -131,7 +121,7 @@ degreePlot
 
 </details>
 
-```{r}
+```{r fig4a, fig.width = 7.8, fig.height = 4}
 dfForPlotKOW <- resultsTidy %>%
   separate_longer_delim(KindOfWork,
            delim=", ") %>%
@@ -168,7 +158,7 @@ kowPlot <- ggplot(dfForPlotKOW,
 
 kowPlot
 
-#save and set save size
+ggsave(here("resources/plots/kind_of_work_heatmap.png"), plot = kowPlot, height = 4, width = 7.8, units = "in")
 ```
 
 ## Demographics: Institutional Affiliation
@@ -179,19 +169,17 @@ kowPlot
 
 <details><summary>Description of variable definitions and steps</summary>
 
-First, we set the factor level for the further simplified institutional type column (`FurtherSimplifiedInstitutionalType`) so that we know the order on the y-axis when plotting. We then use `group_by()` together with `summarize()` to count the number of each further simplified institutional type for each `UserType`. We plot this as a bar plot with the institutional type on the y-axis and the count on the x-axis and fill the stacked bars according to `UserType`. We add text labels to the bars displaying the sum of the institutional type. We also use custom annotation grobs that break down which institutional types are part of each further simplified institutional type (as defined in `TidyData.Rmd`). Note the liberal uses of spaces to try to align these sub-labels. Finally, we pass the plot to the shared function `stylize_bar()` to change axis labels, fill colors, etc.     
+First, we set the factor level for the further simplified institutional type column (`FurtherSimplifiedInstitutionalType`) so that we know the order on the y-axis when plotting. We plot this as a bar plot with the institutional type on the y-axis and the count on the x-axis and fill the stacked bars according to `UserType`. We add text labels to the bars displaying the sum of the institutional type. We also use custom annotation grobs that break down which institutional types are part of each further simplified institutional type (as defined in `TidyData.Rmd`). Note the liberal uses of spaces to try to align these sub-labels. Finally, we pass the plot to the shared function `stylize_bar()` to change axis labels, fill colors, etc.     
 
 </details>
 
-```{r, fig.height = 5, fig.width = 8}
+```{r fig1c, fig.height = 5.4, fig.width = 8.8}
 instTypePlot <- resultsTidy %>%
   mutate(FurtherSimplifiedInstitutionalType = factor(FurtherSimplifiedInstitutionalType, levels = c("Industry & Other", "Education Focused", "Research Intensive"))) %>%
-  #group_by(UserType, FurtherSimplifiedInstitutionalType) %>% summarize(InstitutionalCount = n()) %>%
   ggplot(aes(
     y = FurtherSimplifiedInstitutionalType,
-    #x = InstitutionalCount,
     fill = UserType
-  )) + geom_bar() + #position = "stack", stat = "identity") +
+  )) + geom_bar() +
   geom_text(
     aes(label = after_stat(..count..)), stat = "count",
     position = "stack", hjust = -1, size=4
@@ -206,7 +194,7 @@ instTypePlot %<>% stylize_bar(labelBars = FALSE)
 
 instTypePlot
 
-#ggsave(here("plots/institutionalType_simplified_allResponses_colorUserType.png"), plot = instTypePlot) #set plot size
+ggsave(here("resources/plots/institutionalType_simplified_allResponses_colorUserType.png"), plot = instTypePlot, height = 5.4 , width = 8.8 , units = "in")
 ```
 
 ## Demographics: Consortia Affiliations
@@ -319,7 +307,7 @@ Used [this Stack Overflow response](https://stackoverflow.com/a/72309061) to get
 
 </details>
 
-```{r}
+```{r fig7a, fig.width = 9, fig.height = 6}
 PlotToolKnowledge_avg_score <-
   ggplot(toPlotToolKnowledgeSeparateBR, aes(y = reorder(Tool, avgScore), x = avgScore)) +
   geom_point(aes(color = UserType, shape = AnVILorNo), size = 3.5)
@@ -329,7 +317,7 @@ PlotToolKnowledge_avg_score %<>% PlotToolKnowledge_customization()
 
 PlotToolKnowledge_avg_score
 
-#ggsave(here("plots/tooldataresourcecomfortscore_singlepanel.png"), w = 2200, h = 1350, units = "px")
+ggsave(here("resources/plots/tooldataresourcecomfortscore_singlepanel.png"), plot = PlotToolKnowledge_avg_score, width = 9, height = 6, units = "in")
 ```
 
 
@@ -382,28 +370,28 @@ typeDataHumanGenomicSubset <- resultsTidy %>%
 
 </details>
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 everyone_type_data <- plot_type_data(typeOfDataDf)
 
 everyone_type_data
 
-#ggsave(here("plots/typesOfData.png"), plot=everyone_type_data) #add plot size
+ggsave(here("resources/plots/typesOfData.png"), plot=everyone_type_data, width = 11.2, height = 5.7, units ="in")
 ```
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 clinical_type_data <- plot_type_data(typeDataClinicalSubset, subtitle = "Respondents moderately or extremely experienced with clinical data")
 
 clinical_type_data
 
-#ggsave(here("plots/typesOfData_clinical.png"), plot=clinical_type_data)
+ggsave(here("resources/plots/typesOfData_clinical.png"), plot=clinical_type_data, width = 11.2, height = 5.7, units ="in")
 ```
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 humangenomic_type_data <- plot_type_data(typeDataHumanGenomicSubset, subtitle = "Respondents moderately or extremely experienced with human genomic data")
 
 humangenomic_type_data
 
-#ggsave(here("plots/typesOfData_humangenomic.png"), plot=humangenomic_type_data)
+ggsave(here("resources/plots/typesOfData_humangenomic.png"), plot=humangenomic_type_data, width = 11.2, height = 5.7, units ="in")
 ```
 
 
@@ -439,7 +427,7 @@ and for each category, possible options were
 
 <details><summary>Description of variable definitions and steps for preparing the data</summary>
 
-Here we select the columns containing answers for each data category: `HumanGenomicExperience`, `HumanClinicalExperience`, and `NonHumanGenomicExperience`. We also select `UserType` in case we want to split user type out at all in viewing the data. We use a `pivot_longer` to make a long dataframe that can be grouped and groups counted. The category/column names go to a new column, `researchType` and the values in those columns go to a new column `experienceLevel`. Before we use group by and count, we set the factor level on the new `experienceLevel` column to match the progression from not at all experienced to extremely experienced, and we rename the research categories so that the words have spaces, and we say research instead of experience. Then we use `group_by` and `summarize` to add counts for each combination of research category, experience level, and `UserType`. These counts are in the new `n` column.
+Here we select the columns containing answers for each data category: `HumanGenomicExperience`, `HumanClinicalExperience`, and `NonHumanGenomicExperience`. We also select `UserType` in case we want to split user type out at all in viewing the data. We use a `pivot_longer` to make a long dataframe that can be grouped and groups counted. The category/column names go to a new column, `researchType` and the values in those columns go to a new column `experienceLevel`. Before we use group by and count, we set the factor level on the new `experienceLevel` column to match the progression from not at all experienced to extremely experienced, and we rename the research categories so that the words have spaces, and we say research instead of experience.
 
 </details>
 
@@ -450,8 +438,7 @@ experienceDf <- resultsTidy %>% select(HumanGenomicExperience, HumanClinicalExpe
            factor(experienceLevel, levels = c("Not at all experienced", "Slightly experienced", "Somewhat experienced", "Moderately experienced", "Extremely experienced")),
          researchType = case_when(researchType == "HumanClinicalExperience" ~ "Human Clinical Research",
                                   researchType == "HumanGenomicExperience" ~ "Human Genomic Research",
-                                  researchType == "NonHumanGenomicExperience" ~ "Non-human\nGenomic Research")) #%>%
-  #group_by(researchType, experienceLevel, UserType) %>% summarize(n = n())
+                                  researchType == "NonHumanGenomicExperience" ~ "Non-human\nGenomic Research"))
 ```
 
 <details><summary>Description of variable definitions and steps for plotting the bar graph</summary>
@@ -464,29 +451,22 @@ We adjust various aspects of the theme like turning off the grid and background 
 
 </details>
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 genomicsExpPlot <- ggplot(experienceDf, aes(x=experienceLevel,
-                                            #y=n,
-                                            fill = experienceLevel)) +
+    fill = experienceLevel)) +
   facet_grid(~researchType) +
-  geom_bar() + #stat="identity") +
-  #geom_text(
-  #  aes(label = after_stat(y), group = experienceLevel),
-  #  stat = 'summary', fun = sum, vjust = -0.5, size=2
-#) +
-#  coord_cartesian(clip = "off") +
-  #theme(plot.margin = margin(1,1,1,1.05, "cm")) +
+  geom_bar() + 
   ggtitle("How much experience do you have analyzing the following data categories?")
 
 genomicsExpPlot %<>% stylize_bar(usertypeColor = FALSE, sequentialColor = TRUE, ylabel = "Count", xlabel = "Reported Experience Level", rotate=55, hjustv = 1)
 
 genomicsExpPlot
 
-#ggsave(here("plots/researchExperienceLevel_sequentialColor_noUserTypeSplit.png")) #set plot size
+ggsave(here("resources/plots/researchExperienceLevel_sequentialColor_noUserTypeSplit.png"), plot = genomicsExpPlot, width = 11.2, height = 5.7, units ="in")
 ```
 
 
-```{r, fig.height = 4, fig.width = 9}
+```{r fig3a, fig.height = 4, fig.width = 9}
 experienceDf_pct <-
   experienceDf %>%
   group_by(researchType, experienceLevel, UserType) %>%
@@ -508,9 +488,11 @@ genomicsExpPlot_replot <- genomicsExpPlot_replot +
   )) + theme(legend.position = "right")
 
 genomicsExpPlot_replot
+
+ggsave(here("resources/plots/experience_data_cats.png"), plot = genomicsExpPlot_replot, width = 9, height = 4, units = "in")
 ```
 
-```{r, fig.height = 5, fig.width = 5}
+```{r fig3b, fig.height = 5.7, fig.width = 7.2}
 inputList <- list(ClinicalExperience = which(resultsTidy$clinicalFlag),
                   HumanGenomicsExperience = which(resultsTidy$humanGenomicFlag),
                   NonHumanGenomicsExperience = which(resultsTidy$nonHumanGenomicFlag))
@@ -521,6 +503,8 @@ vennExperience <- ggVennDiagram(inputList,
   coord_cartesian(clip = "off")
 
 vennExperience
+
+ggsave(here("resources/plots/experience_data_cats_venn.png"), plot = vennExperience, width = 7.2, height = 5.7, units = "in")
 ```
 
 ## Experience: Controlled Access Datasets
@@ -561,24 +545,22 @@ Since this is a select all that apply question, we expect that there will be mul
 
 </details>
 
-```{r}
+```{r, fig.width = 9, fig.height = 6}
 dataInterestPlot <- resultsTidy %>%
   ggplot(aes(x = InterestControlledData,
-             #y = count,
              fill = as.factor(InterestControlledData))) +
-  geom_bar() + #stat="identity") +
+  geom_bar() + 
   ggtitle("How interested are you in working with controlled access datasets?") +
-  #coord_cartesian(clip = "off") +
-  #theme(plot.margin = margin(1,1,1,1.1, "cm")) +
   annotation_custom(textGrob("Extremely\ninterested", gp=gpar(fontsize=8, fontface = "bold")),xmin=5,xmax=5,ymin=-3.5,ymax=-3.5) +
   annotation_custom(textGrob("Not at all\ninterested", gp=gpar(fontsize=8, fontface= "bold")),xmin=1,xmax=1,ymin=-3.5,ymax=-3.5) +
-  scale_y_continuous(breaks= pretty_breaks()) #+
-  #geom_text(aes(label = count, group = InterestControlledData),
-  #              vjust = -1, size=2)
+  scale_y_continuous(breaks= pretty_breaks())
 
 dataInterestPlot %<>% stylize_bar(usertypeColor = FALSE, sequentialColor = TRUE, xlabel = "Interest level", ylabel = "Count")
 
 dataInterestPlot
+
+ggsave(here("resources/plots/controlled_access_datasets.png"), plot = dataInterestPlot, width = 9, height = 6, units = "in")
+
 ```
 
 <details><summary>Description of variable definitions and steps for preparing the data</summary>
@@ -669,36 +651,36 @@ We call this function 4 times
 
 </details>
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 everyoneDataPlot <- plot_which_data(whichDataDf)
 
 everyoneDataPlot
 
-#ggsave(here("plots/whichcontrolleddata.png"), plot = everyoneDataPlot) #add plot size
+ggsave(here("resources/plots/whichcontrolleddata.png"), plot = everyoneDataPlot, width = 11.2, height = 5.7, units ="in") 
 ```
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 clinicalDataPlot <- plot_which_data(whichDataClinicalSubset, subtitle = "Respondents moderately or extremely experienced with clinical data")
 
 clinicalDataPlot
 
-#ggsave(here("plots/whichcontrolleddata_clinical.png"), plot = clinicalDataPlot) #add plot size
+ggsave(here("resources/plots/whichcontrolleddata_clinical.png"), plot = clinicalDataPlot, width = 11.2, height = 5.7, units ="in")
 ```
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 humanGenomicDataPlot <- plot_which_data(whichDataHumanGenomicSubset, subtitle = "Respondents moderately or extremely experienced with human genomic data")
 
 humanGenomicDataPlot
 
-#ggsave(here("plots/whichcontrolleddata_humangenomic.png"), plot = humanGenomicDataPlot) #add plot size
+ggsave(here("resources/plots/whichcontrolleddata_humangenomic.png"), plot = humanGenomicDataPlot, width = 11.2, height = 5.7, units ="in")
 ```
 
-```{r}
+```{r, fig.width = 11.2, fig.height = 5.7}
 nonHumanGenomicDataPlot <- plot_which_data(whichDataNonHumanGenomicSubset, subtitle = "Respondents moderately or extremely experienced with non-human genomic data")
 
 nonHumanGenomicDataPlot
 
-#ggsave(here("plots/whichcontrolleddata_nonhumangenomic.png"), plot = nonHumanGenomicDataPlot) #add plot size
+ggsave(here("resources/plots/whichcontrolleddata_nonhumangenomic.png"), plot = nonHumanGenomicDataPlot, width = 11.2, height = 5.7, units ="in")
 ```
 
 ## Awareness: Monthly AnVIL Demos
@@ -709,48 +691,42 @@ nonHumanGenomicDataPlot
 
 #### Raw responses
 
-```{r}
+```{r fig6a, fig.width = 9, fig.height = 6}
 demoPlotRaw <- resultsTidy %>%
-  #group_by(UserType, AnVILDemo) %>%
-  #summarize(count = n()) %>%
-  ggplot(aes(y=fct_rev(fct_infreq(AnVILDemo)),#=reorder(AnVILDemo, ..count..),
-             #x = count,
+  ggplot(aes(y=fct_rev(fct_infreq(AnVILDemo)),
              fill = UserType)) +
-  geom_bar() + #stat = "identity") +
+  geom_bar() +
   ggtitle("Have you attended a monthly AnVIL Demo?") +
   geom_text(
     aes(label = after_stat(..count..)), stat = "count",
     position = "stack", hjust = -1, size=4
-    #aes(label = after_stat(x), group = AnVILDemo),
-    #stat = 'summary', fun = sum, hjust = -1, size=2
 ) + coord_cartesian(clip = "off")
 
 demoPlotRaw %<>% stylize_bar(labelBars = FALSE)
 
 demoPlotRaw
+
+ggsave(here("resources/plots/demo_raw_responses.png"), plot = demoPlotRaw, width = 9, height = 6, units = "in")
 ```  
 
 #### Responses recoded to focus on awareness
 
-```{r}
+```{r fig6b, fig.width = 9, fig.height = 6}
 demoPlot <- resultsTidy %>%
-  #group_by(UserType, AnVILDemoAwareness) %>%
-  #summarize(count = n()) %>%
   ggplot(aes(y = AnVILDemoAwareness,
-             #x = count,
              fill = UserType)) +
-  geom_bar() + #stat = "identity") +
+  geom_bar() +
   ggtitle("Have you attended a monthly AnVIL Demo?") +
   geom_text(
     aes(label = after_stat(..count..)), stat = "count",
     position = "stack", hjust = -1, size=4
-    #aes(label = after_stat(x), group = AnVILDemoAwareness),
-    #stat = 'summary', fun = sum, hjust = -1, size=2
   ) + coord_cartesian(clip = "off")
 
 demoPlot %<>% stylize_bar(ylabel = "Awareness", labelBars = FALSE)
 
 demoPlot
+
+ggsave(here("resources/plots/demo_awareness_responses.png"), plot = demoPlot, width = 9, height = 6, units = "in")
 ```
 
 ## Awareness: AnVIL Support Forum
@@ -769,9 +745,6 @@ forumdf <- resultsTidy %>%
                                          replacement= "No ")) %>%
   separate_longer_delim(AnVILSupportForum,
            delim = ", ") %>%
-  #group_by(UserType, AnVILSupportForum) %>%
-  #summarize(count = n()) %>%
-  #drop_na() %>%
   mutate(AnVILSupportForum =
            factor(AnVILSupportForum,
                   levels = c("Posted in", "Answered someone's post", "Read through others' posts", "No but aware of", "No didn't know of"))
@@ -780,28 +753,27 @@ forumdf <- resultsTidy %>%
 
 #### Raw responses
 
-```{r}
+```{r fig6c, fig.width = 9.7, fig.height=6}
 forumPlotRaw <- ggplot(forumdf,
-                       aes(y = fct_rev(fct_infreq(AnVILSupportForum)),
-                           #x = count,
-                           fill = UserType)) +
-  geom_bar() + #stat = "identity") +
+                       aes(y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserType)) +
+  geom_bar() + 
   ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
   geom_text(
     aes(label = after_stat(..count..)), stat = "count",
     position = "stack", hjust = -1, size=4
-    #aes(label = after_stat(x), group = AnVILSupportForum),
-    #stat = 'summary', fun = sum, hjust = -1, size=2
 ) + coord_cartesian(clip = "off")
 
 forumPlotRaw %<>% stylize_bar(labelBars = FALSE)
 
 forumPlotRaw
+
+ggsave(here("resources/plots/forum_raw_responses.png"), plot = forumPlotRaw, width = 9.7, height = 6, units = "in")
+
 ```
 
 #### Responses recoded to focus on awareness
 
-```{r}
+```{r fig6d, fig.width = 9, fig.height = 6}
 forumPlot <- ggplot(resultsTidy, aes(y = forumAwareness, fill = UserType)) +
   geom_bar() +
   ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
@@ -813,6 +785,8 @@ forumPlot <- ggplot(resultsTidy, aes(y = forumAwareness, fill = UserType)) +
 forumPlot %<>% stylize_bar(ylabel = "Awareness", labelBars = FALSE)
 
 forumPlot
+
+ggsave(here("resources/plots/forum_awareness_responses.png"), plot = forumPlot, width = 9, height = 6, units = "in")
 ```
 
 ## Preferences: Feature Importance Ranking
@@ -909,7 +883,7 @@ Finally, we'll reverse the x-axis so that most important is on the right and lea
 
 </details>
 
-```{r, fig.height = 5, fig.width = 8}
+```{r fig5a, fig.height = 5.7, fig.width = 10.5}
 
 gdumbbell <- ggplot(totalRanksdf,
                     aes(x = avgRank,
@@ -923,7 +897,7 @@ gdumbbell %<>% stylize_dumbbell(xmax=6, importance = TRUE)
 
 gdumbbell
 
-#ggsave(here("plots/dumbbellplot_xlim16_revaxis_rankfeatures.png"), plot = gdumbbell) #set plot size
+ggsave(here("resources/plots/dumbbellplot_xlim16_revaxis_rankfeatures.png"), plot = gdumbbell, height = 5.7, width = 10.5, units = "in")
 
 ```
 
@@ -984,7 +958,7 @@ toPlotTrainingRanks <- bind_rows(
 
 </details>
 
-```{r, fig.height = 5, fig.width = 6}
+```{r fig5b, fig.width = 8.4, fig.height = 5.7}
 tdumbbell <- ggplot(toPlotTrainingRanks, aes(x = avgRank, y = reorder(TrainingType, -avgRank))) +
   geom_line() +
   geom_point(aes(color = UserType), size = 3.5) +
@@ -995,7 +969,7 @@ tdumbbell %<>% stylize_dumbbell(preference = TRUE, xmax = 5)
 
 tdumbbell
 
-#ggsave(here("plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell) #set plot size
+ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in") 
 ```
 
 ## Preferences: Where analyses are currently run
@@ -1007,7 +981,7 @@ tdumbbell
 
 ### Prepare and plot the data
 
-```{r}
+```{r fig7b}
 whereRunPlot <- resultsTidy %>%
   separate_longer_delim(WhereAnalysesRun,
            delim = ", ") %>%
@@ -1021,12 +995,9 @@ whereRunPlot <- resultsTidy %>%
                   "Personal computer (locally)," = "Personal computer (locally)",
                   "local server" = "Institutional HPC")
          ) %>%
-  #group_by(UserType, WhereAnalysesRun) %>%
-  #summarize(count = n()) %>%
-  ggplot(aes(#x = count,
-             y = fct_rev(fct_infreq(WhereAnalysesRun)), #reorder(WhereAnalysesRun, Count),
+  ggplot(aes(y = fct_rev(fct_infreq(WhereAnalysesRun)), 
              fill = UserType)) +
-  geom_bar() + #stat="identity") +
+  geom_bar() + 
   ggtitle("Where do you currently run analyses?") +
   geom_text(
     aes(label = after_stat(..count..)), stat = "count",
@@ -1037,11 +1008,13 @@ whereRunPlot %<>% stylize_bar(ylabel = "Platform", labelBars = FALSE)
 
 whereRunPlot
 
+ggsave(here("resources/plots/where_run.png"), plot = whereRunPlot) #set save size
+
 ```
 
 ## Preferences: DMS compliance/data repositories
 
-```{r}
+```{r, fig.width = 9.2, fig.height=7.2}
 nonOtherResponses <- read_delim(here("data/annotations/codebook.txt"), #read in the codebook
                                 delim = "\t",
                                 col_select = c(SimplifiedColNames, Description)) %>%
@@ -1066,12 +1039,10 @@ dmsPlot <- resultsTidy %>%
   left_join(nonOtherResponses, by = c("RepositoriesDMS" = "Description")) %>% #use this left_join to identify responses that weren't user provided
   replace_na(list(suffix="*")) %>% #user provided responses will have NA in the suffix column from the left_join, so we replace those with an asterisk
   unite(RepositoriesMut, c("RepositoriesDMS", "suffix"), sep="") %>% #unite the responses with the suffix, appending the asterisk for user supplied answers
-  #group_by(UserType, RepositoriesMut) %>%
-  #summarize(count = n()) %>%
-  ggplot(aes(#x = count,
-             y = fct_rev(fct_infreq(RepositoriesMut)), #reorder(RepositoriesMut, count),
+  ggplot(aes(
+             y = fct_rev(fct_infreq(RepositoriesMut)), 
              fill = UserType)) +
-  geom_bar() + #stat = "identity") +
+  geom_bar() + 
   labs(caption = '* denotes a user provided "Other" response') + #Add a caption about * meaning an "Other" response that was user provided
   ggtitle("What repositories are you considering\nto share data (for example, to comply\nwith the NIH DMS Policy)?") +
   geom_text(
@@ -1083,7 +1054,7 @@ dmsPlot %<>% stylize_bar(ylabel = "Data Repository", labelBars = FALSE)
 
 dmsPlot
 
-#ggsave(here("plots/DMS_Repositories.png"), plot = dmsPlot) #set save size
+ggsave(here("resources/plots/DMS_Repositories.png"), plot = dmsPlot, width = 9.2, height = 7.2, units = "in")
 ```
 
 ## Preferences: Source for cloud computing funds
@@ -1118,22 +1089,19 @@ Answers are stored in the `FundingSources` column. This question was a select al
 
 ```{r}
 toPlotFundingSource <- resultsTidy %>%
-  separate_longer_delim(FundingSources, delim = ", ") #%>%
-  #group_by(FundingSources, UserType) %>%
-  #summarize(count = n())
+  separate_longer_delim(FundingSources, delim = ", ")
 ```
 
 <details><summary> Plot the data variable definition and steps </summary>
 
 </details>
 
-```{r}
+```{r, fig.width = 9.8, fig.height = 5.7}
 
 fundingSourcePlot <- toPlotFundingSource %>%
-  ggplot(aes(y = fct_rev(fct_infreq(FundingSources)), #reorder(FundingSources,count),
-             #x = count,
+  ggplot(aes(y = fct_rev(fct_infreq(FundingSources)), 
              fill = UserType)) +
-  geom_bar() + #position = "stack", stat = "identity") +
+  geom_bar() + 
   ggtitle("What source(s) of funds do you use to pay for cloud computing?") +
   geom_text(
     aes(label = after_stat(..count..)), stat = "count",
@@ -1144,7 +1112,7 @@ fundingSourcePlot %<>% stylize_bar(ylabel="Funding Source", labelBars = FALSE)
 
 fundingSourcePlot
 
-#ggsave(here("plots/fundingsources.png"), plot = fundingSourcePlot) #set save size
+ggsave(here("resources/plots/fundingsources.png"), plot = fundingSourcePlot, width = 9.8, height = 5.7, units = "in") 
 ```
 
 ## Returning User: Length of Use of the AnVIL
@@ -1154,15 +1122,9 @@ fundingSourcePlot
 ```{r}
 timeUsePlot <- resultsTidy %>%
   filter(UserType == "Returning User") %>% #not asked to everyone
-  #group_by(LengthOfUse) %>%
-  #summarize(count = n()) %>%
-  #drop_na() %>%
   ggplot(aes(x = LengthOfUse,
-             #y = count,
              fill = "#25445A")) +
-  geom_bar() + #stat = "identity") +
-  #geom_text(aes(label = count, group = LengthOfUse),
-  #                vjust = -1, size=2) +
+  geom_bar() + 
   ggtitle("How long have you been using the AnVIL?")
 
 timeUsePlot %<>% stylize_bar(usertypeColor = FALSE, singleColor = TRUE, xlabel = "Years of Use", ylabel = "Count")
@@ -1180,13 +1142,10 @@ compNeedsPlot <- resultsTidy %>%
   filter(UserType == "Returning User") %>% #not asked to everyone
   separate_longer_delim(NeededResources,
            delim = ", ") %>%
-  #group_by(NeededResources) %>%
-  #summarize(count = n()) %>%
-  #drop_na() %>%
-  ggplot(aes(#x = count,
-             y = fct_rev(fct_infreq(NeededResources)), #reorder(NeededResources, count),
+  ggplot(aes(
+             y = fct_rev(fct_infreq(NeededResources)),
              fill = "#25445A")) +
-  geom_bar() + #stat = "identity") +
+  geom_bar() +
   geom_text(aes(label = after_stat(..count..)), stat = "count",
                  position = "stack", hjust = -1, size=4) +
   coord_cartesian(clip = "off") +
@@ -1205,21 +1164,13 @@ compNeedsPlot
 ```{r}
 recLikePlot <- resultsTidy %>%
   filter(UserType == "Returning User") %>% #not asked to everyone
-  #group_by(RecommendationLikelihood) %>%
-  #summarize(count = n()) %>%
-  #drop_na() %>% #not asked to everyone
   ggplot(aes(x = RecommendationLikelihood,
-             #y = count,
              fill = as.factor(RecommendationLikelihood))) +
-  geom_bar() + #stat="identity") +
+  geom_bar() + 
   ggtitle("How likely are you to recommend the AnVIL to a colleague?") +
-  #coord_cartesian(clip = "off") +
-  #theme(plot.margin = margin(1,1,1.2,1, "cm")) +
   annotation_custom(textGrob("Extremely likely", gp=gpar(fontsize=8, fontface = "bold")),xmin=5,xmax=5,ymin=-1.2,ymax=-1.2) +
   annotation_custom(textGrob("Not at all likely", gp=gpar(fontsize=8, fontface= "bold")),xmin=1,xmax=1,ymin=-1.2,ymax=-1.2) +
-  scale_y_continuous(breaks= pretty_breaks()) #+
-  #geom_text(aes(label = count, group = RecommendationLikelihood),
-  #                vjust = -1, size=2)
+  scale_y_continuous(breaks= pretty_breaks()) 
 
 recLikePlot %<>% stylize_bar(usertypeColor = FALSE, sequentialColor = TRUE, xlabel = "Recommendation likelihood", ylabel = "Count")
 
