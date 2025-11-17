@@ -42,6 +42,7 @@ This directory contains corresponding knit HTML files for each of the R Markdown
 
 * `scripts/shared_functions.R`: some functions used repeatedly in analysis or for plotting
 * `plots/`: plots from the main analysis saved as png files
+* `supplemental_material/`: Includes the complete poll, supplementary Table 1 (relation of study aims and poll questions), and supplementary Table 2 (raw responses translated to awareness and use)
 
 ### figures
 
