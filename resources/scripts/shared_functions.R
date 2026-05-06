@@ -5,9 +5,13 @@ library(tidyverse)
 library(forcats)
 library(grid)
 
-stylize_bar <- function(gplot, usertypeColor = TRUE, singleColor = FALSE, sequentialColor = FALSE, xlabel = "Count", ylabel = "", legendpos = "right", rotate = 0, hjustv = 0, labelBars = TRUE, groupVar = NULL){
+stylize_bar <- function(gplot, usertypeColor = TRUE, usertypeStratified = FALSE, singleColor = FALSE, sequentialColor = FALSE, xlabel = "Count", ylabel = "", legendpos = "right", rotate = 0, hjustv = 0, labelBars = TRUE, groupVar = NULL){
   if (usertypeColor) {
     fillColors <- c("#E0DD10", "#035C94", "#7EBAC0")
+    positionarg = "stack"
+  }
+  else if (usertypeStratified) {
+    fillColors <- c("#f2f2c4", "#E0DD10", "#bad5e6", "#035C94")
     positionarg = "stack"
   }
   else if (singleColor){

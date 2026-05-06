@@ -748,7 +748,15 @@ forumdf <- resultsTidy %>%
   mutate(AnVILSupportForum =
            factor(AnVILSupportForum,
                   levels = c("Posted in", "Answered someone's post", "Read through others' posts", "No but aware of", "No didn't know of"))
-         )
+         ) %>% 
+  # Create additional stratification per reviewer request
+  mutate(
+    ExpType = case_when(
+      HumanGenomicExperience %in% c("Extremely experienced", "Moderately experienced") ~ "- More experienced",
+      TRUE ~ "- Less experienced"
+    )
+  ) %>%
+  mutate(UserTypeStratified = paste(UserType, ExpType))
 ```
 
 #### Raw responses
@@ -768,6 +776,26 @@ forumPlotRaw %<>% stylize_bar(labelBars = FALSE)
 forumPlotRaw
 
 ggsave(here("resources/plots/forum_raw_responses.png"), plot = forumPlotRaw, width = 9.7, height = 6, units = "in")
+
+```
+
+#### Raw responses, stratified
+
+```{r fig.width = 9.7, fig.height=6}
+forumPlotRawStrat <- ggplot(forumdf,
+                       aes(y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserTypeStratified)) +
+  geom_bar() + 
+  ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
+  geom_text(
+    aes(label = after_stat(..count..)), stat = "count",
+    position = "stack", hjust = -1, size=4
+) + coord_cartesian(clip = "off")
+
+forumPlotRawStrat %<>% stylize_bar(labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
+
+forumPlotRawStrat
+
+ggsave(here("resources/plots/forum_raw_strat_responses.png"), plot = forumPlotRawStrat, width = 9.7, height = 6, units = "in")
 
 ```
 
