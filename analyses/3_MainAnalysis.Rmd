@@ -762,14 +762,25 @@ forumdf <- resultsTidy %>%
 #### Raw responses
 
 ```{r fig6c, fig.width = 9.7, fig.height=6}
-forumPlotRaw <- ggplot(forumdf,
-                       aes(y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserType)) +
-  geom_bar() + 
-  ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4
-) + coord_cartesian(clip = "off")
+forumPlotBody <- function(ggplotItem) {
+  return(
+    ggplotItem +
+      geom_bar() +
+      ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
+      geom_text(
+        aes(label = after_stat(..count..)),
+        stat = "count",
+        position = "stack",
+        hjust = -1,
+        size = 4
+      ) + coord_cartesian(clip = "off")
+  )
+}
+
+forumPlotRaw <- 
+  forumPlotBody(ggplot(forumdf, aes(
+    y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserType
+  )))
 
 forumPlotRaw %<>% stylize_bar(labelBars = FALSE)
 
@@ -782,14 +793,10 @@ ggsave(here("resources/plots/forum_raw_responses.png"), plot = forumPlotRaw, wid
 #### Raw responses, stratified
 
 ```{r fig.width = 9.7, fig.height=6}
-forumPlotRawStrat <- ggplot(forumdf,
-                       aes(y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserTypeStratified)) +
-  geom_bar() + 
-  ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4
-) + coord_cartesian(clip = "off")
+forumPlotRawStrat <-
+  forumPlotBody(ggplot(forumdf, aes(
+    y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserTypeStratified
+  )))
 
 forumPlotRawStrat %<>% stylize_bar(labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
 
