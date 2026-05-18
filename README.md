@@ -4,6 +4,8 @@
 
 This repository contains all of the code to reproduce the analysis done for the State of the AnVIL 2024 Poll.
 
+[Survey Instrument](https://github.com/fhdsl/SOTA2024_ReportOut/blob/main/resources/supplemental_material/State_of_the_AnVIL_2024_Community_Poll-DocVersion.pdf)
+
 ## Directory Structure:
 
 ### data
@@ -42,7 +44,7 @@ This directory contains corresponding knit HTML files for each of the R Markdown
 
 * `scripts/shared_functions.R`: some functions used repeatedly in analysis or for plotting
 * `plots/`: plots from the main analysis saved as png files
-* `supplemental_material/`: Includes the complete poll, supplementary Table 1 (relation of study aims and poll questions), and supplementary Table 2 (raw responses translated to awareness and use)
+* `supplemental_material/`: Includes the [complete poll](https://github.com/fhdsl/SOTA2024_ReportOut/blob/main/resources/supplemental_material/State_of_the_AnVIL_2024_Community_Poll-DocVersion.pdf), [supplementary Table 1](https://github.com/fhdsl/SOTA2024_ReportOut/blob/main/resources/supplemental_material/SupplementalTable1.pdf) (relation of study aims and poll questions), and [supplementary Table 2](https://github.com/fhdsl/SOTA2024_ReportOut/blob/main/resources/supplemental_material/SupplementalTable2.pdf) (raw responses translated to awareness and use)
 
 ### figures
 
@@ -51,7 +53,6 @@ This directory contains corresponding knit HTML files for each of the R Markdown
 
 ## Other notes:
 
-* Preprint information
-* A poster presented at the AnVIL Community Conference 2025
-* A companion website information
-* AnVIL Collection and other outreach information
+* Preprint: https://www.biorxiv.org/content/10.1101/2025.11.14.688517v1
+* A poster presented at the AnVIL Community Conference 2025: https://www.youtube.com/watch?v=Z_xTenvwRDo&list=PL6aYJ_0zJ4uDbUn28tves8OKwrDB7dN32&index=8
+* [AnVIL Collection](https://hutchdatascience.org/AnVIL_Collection/) and this poll are largely supported by the [Outreach Working Group](https://anvilproject.org/team/working-groups#outreach-working-group)
