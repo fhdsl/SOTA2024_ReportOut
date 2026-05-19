@@ -970,7 +970,7 @@ The responses are stored in the starts with `AnVILTrainingWorkshops` columns
 
 </details>
 
-### Prepare and plot the data
+### Prepare and plot the data, usertype stratification
 
 <details><summary>Description of variable definitions and steps for preparing the data</summary>
 
@@ -1021,6 +1021,54 @@ tdumbbell
 ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in")
 ```
 
+### Prepare and plot the data, usertype and experience level stratification
+
+```{r}
+toPlotTrainingRanksStrat <- data.frame()
+
+for(strat in unique(resultsTidy$UserTypeStratified)){
+  toPlotTrainingRanksStrat <- rbind(toPlotTrainingRanksStrat,
+    resultsTidy %>%
+      filter(UserTypeStratified == strat) %>%
+      select(starts_with("AnVILTrainingWorkshops")) %>%
+      colSums(na.rm = TRUE) %>%
+      as.data.frame() %>% `colnames<-`(c("totalRank")) %>%
+      mutate(nranks = sum(resultsTidy$UserTypeStratified == strat),
+             avgRank = totalRank / nranks,
+             UserType = strat) %>%
+      mutate(TrainingType = rownames(.)) %>%
+      mutate(TrainingType = str_replace(TrainingType, "AnVILTrainingWorkshops", ""))
+  )
+}
+
+toPlotTrainingRanksStrat %<>% mutate(TrainingType = recode(TrainingType,
+   "SpecEvent" = "AnVIL-specific event",
+   "OnSite" = "On-site at my institution",
+   "Conference" = "Conference (e.g., CSHL, AMIA)")) %>%
+   mutate(UserType = factor(str_replace(UserType, " - ", "\n"), levels = c("Potential User\nLess experienced",
+                                                 "Potential User\nMore experienced",
+                                                 "Returning User\nLess experienced",
+                                                 "Returning User\nMore experienced")))
+
+
+
+
+```
+
+```{r fig.width = 8.4, fig.height = 5.7}
+tdumbbellStrat <- ggplot(toPlotTrainingRanksStrat, aes(x = avgRank, y = reorder(TrainingType, -avgRank))) +
+  geom_line() +
+  geom_point(aes(color = UserType), size = 3.5) +
+  ggtitle("Please rank how/where you would prefer\nto attend AnVIL training workshops.")
+
+
+tdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 5, usertype = FALSE, usertypeStratified = TRUE) + guides(fill = guide_legend(nrow = 2))
+
+tdumbbellStrat
+
+ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in")
+```
+
 ## Preferences: Where analyses are currently run
 
 **Takeaway:** Institutional HPC and locally/personal computers are the most common responses.
@@ -1030,8 +1078,8 @@ ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.pn
 
 ### Prepare and plot the data
 
-```{r fig7b}
-whereRunPlot <- resultsTidy %>%
+```{r fig7bPrep}
+whereRundf <- resultsTidy %>%
   separate_longer_delim(WhereAnalysesRun,
            delim = ", ") %>%
   mutate(WhereAnalysesRun =
@@ -1043,21 +1091,34 @@ whereRunPlot <- resultsTidy %>%
                   "Institutional High Performance Computing cluster (HPC)" = "Institutional HPC",
                   "Personal computer (locally)," = "Personal computer (locally)",
                   "local server" = "Institutional HPC")
-         ) %>%
-  ggplot(aes(y = fct_rev(fct_infreq(WhereAnalysesRun)),
-             fill = UserType)) +
-  geom_bar() +
-  ggtitle("Where do you currently run analyses?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4
-  ) + coord_cartesian(clip = "off")
+         )
+```
+```{r fig7b}
+whereRunPlot <-
+  supportPlotBody(ggplot(whereRundf, aes(
+      y = fct_rev(fct_infreq(WhereAnalysesRun)), fill = UserType
+  )), platform = TRUE)
 
 whereRunPlot %<>% stylize_bar(ylabel = "Platform", labelBars = FALSE)
 
 whereRunPlot
 
 ggsave(here("resources/plots/where_run.png"), plot = whereRunPlot) #set save size
+
+```
+
+#### Additional usertype stratification
+
+```{r}
+whereRunPlotStrat <- supportPlotBody(ggplot(whereRundf, aes(
+      y = fct_rev(fct_infreq(WhereAnalysesRun)), fill = UserTypeStratified
+    )), platform = TRUE)
+
+whereRunPlotStrat %<>% stylize_bar(ylabel = "Platform", labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
+
+whereRunPlotStrat
+
+ggsave(here("resources/plots/where_run_stratified.png"), plot = whereRunPlotStrat) #set save size
 
 ```
 
