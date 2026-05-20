@@ -859,7 +859,7 @@ We're going to look at a comparison of the assigned ranks for these features, co
 
 </details>
 
-### Prepare and plot the data
+### Prepare and plot the data, usertype stratification
 
 Average rank is total rank (sum of given ranks) divided by number of votes (number of given ranks)
 
@@ -948,6 +948,66 @@ gdumbbell
 
 ggsave(here("resources/plots/dumbbellplot_xlim16_revaxis_rankfeatures.png"), plot = gdumbbell, height = 5.7, width = 10.5, units = "in")
 
+```
+
+### Prepare and plot the data, usertype and experience level stratification
+
+```{r}
+totalRanksdfStrat <- data.frame()
+
+for(strat in unique(resultsTidy$UserTypeStratified)){
+  totalRanksdfStrat <- rbind(totalRanksdfStrat,
+    resultsTidy %>%
+      filter(UserTypeStratified == strat) %>%
+      select(starts_with("ReturningRank")| starts_with("PotentialRank")) %>%
+      colSums(na.rm = TRUE) %>%
+      as.data.frame() %>% `colnames<-`(c("totalRank")) %>%
+      mutate(nranks = sum(resultsTidy$UserTypeStratified == strat),
+             avgRank = totalRank / nranks,
+             UserType = strat) %>%
+      mutate(UsertypeFeature = rownames(.)) %>%
+      separate(UsertypeFeature, c("temp", "Feature"), sep = "Rank", remove = TRUE) %>%
+      mutate(Feature =
+                      case_when(Feature == "EasyBillingSetup" ~ "Easy billing setup",
+                                Feature == "FlatRateBilling" ~ "Flat-rate billing rather than use-based",
+                                Feature == "FreeVersion" ~ "Free version with limited compute or storage",
+                                Feature == "SupportDocs" ~ "On demand support and documentation",
+                                Feature == "ToolsData" ~ "Specific tools or datasets are available/supported",
+                                Feature == "CommunityAdoption" ~ "Greater adoption of the AnVIL by the scientific community")
+  ))
+}
+
+totalRanksdfStrat %<>% mutate(UserType = factor(str_replace(UserType, " - ", "\n"),
+                                      levels = c("Potential User\nLess experienced",
+                                                 "Potential User\nMore experienced",
+                                                 "Returning User\nLess experienced",
+                                                 "Returning User\nMore experienced"))) %>%
+                       filter(totalRank != 0)
+
+
+
+
+```
+
+```{r fig.width = 8.4, fig.height = 5.7}
+gdumbbellStrat <- ggplot(totalRanksdfStrat, aes(x = avgRank, y = reorder(Feature, -avgRank))) +
+    geom_line() +
+    geom_point(aes(color = UserType), size = 3.5) +
+    ggtitle("Rank the following features according to\ntheir importance to you as a potential user\nor for your continued use of the AnVIL.")
+
+
+gdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 6, usertype = FALSE, usertypeStratified = TRUE)
+
+gdumbbellStrat +
+  theme(legend.position = "bottom") +
+  annotation_custom(textGrob("Most\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=1,xmax=1,ymin=-0.1,ymax=-0.1) +
+  annotation_custom(textGrob("Least\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=6,xmax=6,ymin=-0.1,ymax=-0.1)
+
+ggsave(here("resources/plots/dumbbellplot_xlim16_revaxis_strat_rankfeatures.png"), plot = gdumbbellStrat, height = 5.7, width = 10.5, units = "in")
 ```
 
 ## Preferences: Training Workshop Modality Ranking
@@ -1075,7 +1135,7 @@ tdumbbellStrat +
                              gp=gpar(fontsize=8, fontface = "bold")),
                              xmin=5,xmax=5,ymin=-0.1,ymax=-0.1)
 
-ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_strat_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in")
+ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_strat_trainingmodalitypref.png"), plot = tdumbbellStrat, height = 5.7, width = 8.4, units = "in")
 ```
 
 ## Preferences: Where analyses are currently run
