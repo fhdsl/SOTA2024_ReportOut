@@ -546,7 +546,11 @@ genomicsExpPlot_replot %<>% stylize_bar(xlabel = "Percent of Respondents", usert
 genomicsExpPlot_replot <- genomicsExpPlot_replot +
   scale_fill_manual(values = c(
     colorRampPalette(c("grey70", "#333333"))(5)
-  )) + theme(legend.position = "right")
+  )) + theme(legend.position = "right") +
+  geom_text(aes(label = paste0("n = ", n)),
+                position = position_stack(vjust = 0.5),
+                color = "#E6F7FF",
+                size = 3)
 
 genomicsExpPlot_replot
 
