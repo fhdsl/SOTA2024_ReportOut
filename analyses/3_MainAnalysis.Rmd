@@ -320,6 +320,67 @@ PlotToolKnowledge_avg_score
 ggsave(here("resources/plots/tooldataresourcecomfortscore_singlepanel.png"), plot = PlotToolKnowledge_avg_score, width = 9, height = 6, units = "in")
 ```
 
+### Prepare and plot the data, usertype and experience stratified
+
+```{r}
+toPlotToolKnowledgeStrat <- data.frame()
+
+for(strat in unique(resultsTidy$UserTypeStratified)){
+  toPlotToolKnowledgeStrat <- rbind(
+    toPlotToolKnowledgeStrat,
+    resultsTidy %>%
+      filter(UserTypeStratified == strat) %>%
+      select(starts_with("Score_")) %>%
+      colSums() %>%
+      as.data.frame() %>% `colnames<-`(c("totalScore")) %>%
+      mutate(nscores = sum(resultsTidy$UserTypeStratified == strat),
+             avgScore = totalScore / nscores,
+             UserType = strat) %>%
+      mutate(WhereTool = rownames(.)) %>%
+      separate(WhereTool, c("AnVILorNo", "Tool"), sep = "Tech", remove = TRUE) %>%
+      mutate(AnVILorNo =
+                case_when(AnVILorNo == "Score_ReturningAnVIL" ~ "On the AnVIL",
+                          AnVILorNo == "Score_All" ~ "Separate from the AnVIL"),
+              Tool =
+                recode(Tool, "JupyterNotebooks" = "Jupyter Notebooks",
+                             "WDL" = "Workflows",
+                             "CommandLine" = "Unix / Command Line",
+                             "AccessData" = "Access controlled access data",
+                             "Terra" = "Terra Workspaces",
+                             "BioconductorRStudio" = "Bioconductor & RStudio"))
+    ) %>% mutate(UserType = factor(str_replace(UserType, " - ", "\n"),
+                                          levels = c("Potential User\nLess experienced",
+                                                     "Potential User\nMore experienced",
+                                                     "Returning User\nLess experienced",
+                                                     "Returning User\nMore experienced")))
+}
+```
+
+```{r}
+roi <- toPlotToolKnowledgeStrat[which(toPlotToolKnowledgeStrat$Tool == "Bioconductor & RStudio"),]
+toPlotToolKnowledgeStratSeparateBR <- rows_append(toPlotToolKnowledgeStrat, data.frame(
+          UserType = rep(roi$UserType,2),
+          avgScore = rep(roi$avgScore,2),
+          AnVILorNo = rep(roi$AnVILorNo,2),
+          Tool = c("Bioconductor", "RStudio")
+  )) %>%
+  filter(Tool != "Bioconductor & RStudio")
+```
+
+```{r fig.width = 9, fig.height = 6}
+PlotToolKnowledgeStrat_avg_score <-
+  ggplot(toPlotToolKnowledgeStratSeparateBR, aes(y = reorder(Tool, avgScore), x = avgScore)) +
+  geom_point(aes(color = UserType, shape = AnVILorNo), size = 3.5)
+
+
+PlotToolKnowledgeStrat_avg_score %<>% PlotToolKnowledge_customization(usertypeStratified = TRUE)
+
+PlotToolKnowledgeStrat_avg_score <- PlotToolKnowledgeStrat_avg_score +
+  annotation_custom(textGrob("Don't know\nat all", gp=gpar(fontsize=8, fontface = "bold")),xmin=0,xmax=0,ymin=-2,ymax=-2) +
+annotation_custom(textGrob("Extremely\ncomfortable", gp=gpar(fontsize=8, fontface= "bold")),xmin=5,xmax=5,ymin=-2,ymax=-2)
+
+ggsave(here("resources/plots/tooldataresourcecomfortscore_strat_singlepanel.png"), plot = PlotToolKnowledgeStrat_avg_score, width = 9, height = 6, units = "in")
+```
 
 ## Experience: Types of Data Analyzed
 
@@ -998,7 +1059,7 @@ gdumbbellStrat <- ggplot(totalRanksdfStrat, aes(x = avgRank, y = reorder(Feature
 
 gdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 6, usertype = FALSE, usertypeStratified = TRUE)
 
-gdumbbellStrat +
+gdumbbellStrat <- gdumbbellStrat +
   theme(legend.position = "bottom") +
   annotation_custom(textGrob("Most\npreferred",
                              gp=gpar(fontsize=8, fontface = "bold")),
@@ -1126,7 +1187,7 @@ tdumbbellStrat <- ggplot(toPlotTrainingRanksStrat, aes(x = avgRank, y = reorder(
 
 tdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 5, usertype = FALSE, usertypeStratified = TRUE)
 
-tdumbbellStrat +
+tdumbbellStrat <- tdumbbellStrat +
   theme(legend.position = "bottom") +
   annotation_custom(textGrob("Most\npreferred",
                              gp=gpar(fontsize=8, fontface = "bold")),
