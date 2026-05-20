@@ -1016,7 +1016,9 @@ tdumbbell <- ggplot(toPlotTrainingRanks, aes(x = avgRank, y = reorder(TrainingTy
 
 tdumbbell %<>% stylize_dumbbell(preference = TRUE, xmax = 5)
 
-tdumbbell
+tdumbbell +
+  annotation_custom(textGrob("Most\npreferred", gp=gpar(fontsize=8, fontface = "bold")),xmin=-1,xmax=-1,ymin=-0.25,ymax=-0.25) +
+  annotation_custom(textGrob("Least\npreferred", gp=gpar(fontsize=8, fontface= "bold")),xmin=-5,xmax=-5,ymin=-0.25,ymax=-0.25)
 
 ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in")
 ```
@@ -1057,16 +1059,23 @@ toPlotTrainingRanksStrat %<>% mutate(TrainingType = recode(TrainingType,
 
 ```{r fig.width = 8.4, fig.height = 5.7}
 tdumbbellStrat <- ggplot(toPlotTrainingRanksStrat, aes(x = avgRank, y = reorder(TrainingType, -avgRank))) +
-  geom_line() +
-  geom_point(aes(color = UserType), size = 3.5) +
-  ggtitle("Please rank how/where you would prefer\nto attend AnVIL training workshops.")
+    geom_line() +
+    geom_point(aes(color = UserType), size = 3.5) +
+    ggtitle("Please rank how/where you would prefer\nto attend AnVIL training workshops.")
 
 
-tdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 5, usertype = FALSE, usertypeStratified = TRUE) + guides(fill = guide_legend(nrow = 2))
+tdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 5, usertype = FALSE, usertypeStratified = TRUE)
 
-tdumbbellStrat
+tdumbbellStrat +
+  theme(legend.position = "bottom") +
+  annotation_custom(textGrob("Most\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=1,xmax=1,ymin=-0.1,ymax=-0.1) +
+  annotation_custom(textGrob("Least\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=5,xmax=5,ymin=-0.1,ymax=-0.1)
 
-ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in")
+ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_strat_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in")
 ```
 
 ## Preferences: Where analyses are currently run
