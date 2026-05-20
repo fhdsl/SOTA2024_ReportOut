@@ -1172,14 +1172,22 @@ whereRunPlot %<>% stylize_bar(ylabel = "Platform", labelBars = FALSE)
 
 whereRunPlot
 
-ggsave(here("resources/plots/where_run.png"), plot = whereRunPlot) #set save size
+ggsave(here("resources/plots/where_run.png"), plot = whereRunPlot, width = 9.8, height = 5.7, units = "in")
 
 ```
 
 #### Additional usertype stratification
 
 ```{r}
-whereRunPlotStrat <- supportPlotBody(ggplot(whereRundf, aes(
+
+whereRundf %<>%
+  mutate(UserType = factor(str_replace(UserTypeStratified, " - ", "\n"),
+                                   levels = c("Potential User\nLess experienced",
+                                              "Potential User\nMore experienced",
+                                              "Returning User\nLess experienced",
+                                              "Returning User\nMore experienced")))
+
+whereRunPlotStrat <-  supportPlotBody(ggplot(whereRundf, aes(
       y = fct_rev(fct_infreq(WhereAnalysesRun)), fill = UserTypeStratified
     )), platform = TRUE)
 
@@ -1187,7 +1195,7 @@ whereRunPlotStrat %<>% stylize_bar(ylabel = "Platform", labelBars = FALSE, usert
 
 whereRunPlotStrat
 
-ggsave(here("resources/plots/where_run_stratified.png"), plot = whereRunPlotStrat) #set save size
+ggsave(here("resources/plots/where_run_stratified.png"), plot = whereRunPlotStrat, width = 9.8, height = 5.7, units = "in")
 
 ```
 
