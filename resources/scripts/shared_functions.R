@@ -50,7 +50,7 @@ stylize_bar <- function(gplot, usertypeColor = TRUE, usertypeStratified = FALSE,
   )
 }
 
-stylize_dumbbell <- function(gplot, xmax = NULL, importance = FALSE, preference = FALSE, usertype = TRUE, xlabel="Average Rank Choice", ylabel=""){
+stylize_dumbbell <- function(gplot, xmax = NULL, importance = FALSE, preference = FALSE, usertype = TRUE, usertypeStratified = FALSE, xlabel="Average Rank Choice", ylabel=""){
   if (importance){
     textGrobMost <- "Most\nimportant"
     textGrobLeast <- "Least\nimportant"
@@ -62,6 +62,10 @@ stylize_dumbbell <- function(gplot, xmax = NULL, importance = FALSE, preference 
   if (usertype){
     gplot <- gplot +
       scale_color_manual(values = c("#E0DD10", "#035C94"))
+  }
+  if (usertypeStratified){
+    gplot <- gplot +
+      scale_color_manual(values = c("#f2f2c4", "#E0DD10", "#bad5e6", "#035C94"))
   }
   return(
     gplot +
@@ -80,7 +84,16 @@ stylize_dumbbell <- function(gplot, xmax = NULL, importance = FALSE, preference 
   )
 }
 
-PlotToolKnowledge_customization <- function(gplot){
+PlotToolKnowledge_customization <- function(gplot, usertypeStratified = FALSE){
+
+  if(usertypeStratified == TRUE){
+    gplot <- gplot +
+      scale_color_manual(values = c("#f2f2c4", "#E0DD10", "#bad5e6", "#035C94"))
+  } else {
+    gplot <- gplot +
+      scale_color_manual(values = c("#E0DD10", "#035C94"))
+  }
+
   return(
     gplot +
       scale_x_continuous(breaks = 0:5, labels = 0:5, limits = c(0,5)) +
@@ -95,7 +108,6 @@ PlotToolKnowledge_customization <- function(gplot){
       coord_cartesian(clip = "off") +
       theme(plot.margin = margin(1,1,1,1.1, "cm")) +
       ggtitle("How would you rate your knowledge of or\ncomfort with these technologies or data features?") +
-      scale_color_manual(values = c("#E0DD10", "#035C94")) +
       scale_shape_manual(values = c(4, 16)) +
       theme(legend.title = element_blank())
   )
@@ -182,4 +194,30 @@ plot_type_data <- function(inputToPlotDF, subtitle = NULL){
   toreturnplot %<>% stylize_bar(usertypeColor = FALSE, singleColor = TRUE, xlabel = "Types of data", ylabel = "Count", hjustv = 1, rotate=45)
 
   return(toreturnplot)
+}
+
+supportPlotBody <- function(ggplotItem, forum = FALSE, demo = FALSE, platform = FALSE, title_input = NULL) {
+  if(forum == TRUE){
+    title = "Have you ever read or posted in our AnVIL Support Forum?"
+  }
+  if(demo == TRUE){
+    title = "Have you attended a monthly AnVIL Demo?"
+  }
+  if(platform == TRUE){
+    title = "Where do you currently run analyses?"
+  } else {
+    title = title_input
+  }
+  return(
+    ggplotItem +
+      geom_bar() +
+      ggtitle(title) +
+      geom_text(
+        aes(label = after_stat(..count..)),
+        stat = "count",
+        position = "stack",
+        hjust = -1,
+        size = 4
+      ) + coord_cartesian(clip = "off")
+  )
 }
