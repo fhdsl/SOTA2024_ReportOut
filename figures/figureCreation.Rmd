@@ -40,13 +40,18 @@ ggsave(here("figures/user_identification_panels.png"), width=12, height=16, unit
 ## Figure 3: User research experience  
 
 ```{r, fig.width=9, fig.height = 11}
-genomicsExpPlot_replot /
+a_sub <- wrap_elements((genomicsExpPlot_n + theme(
+  strip.text = element_blank(),
+  strip.background = element_blank()
+)) + (genomicsExpPlot_replot + theme(axis.text.y = element_blank())) + plot_layout(guides = "collect"))
+
+a_sub /
   vennExperience +
   plot_annotation(title = "User research experience",
                   tag_levels = 'A',
                   theme = theme(plot.title = element_text(size = 18),
                                 plot.tag = element_text(face = "bold"))) +
-  plot_layout(widths = c(9), heights = c(7, 6))
+  plot_layout(widths = c(14), heights = c(10, 14))
 
 ggsave(here("figures/user_research_experience_panels.png"), width=9, height=11, units = "in")
 
@@ -80,7 +85,7 @@ p1 <- ggplot(kowpersona,
         text = element_text(size=12))+
   ylab("") +
   xlab("") +
-  facet_wrap(~UserType, scales = "free_x") + 
+  facet_wrap(~UserType, scales = "free_x") +
   scale_x_continuous(expand = c(0, 0))
 
 p2 <-ggplot(kowpersona,
