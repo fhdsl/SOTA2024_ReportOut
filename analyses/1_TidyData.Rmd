@@ -210,7 +210,7 @@ resultsTidy %<>%
         "v" = "Unknown"
       )
   ) %>%
-  mutate(group_col = factor(InstitutionalAffiliation, 
+  mutate(group_col = factor(InstitutionalAffiliation,
                             levels = sample(unique(InstitutionalAffiliation))
                             )
         ) %>%
@@ -586,6 +586,23 @@ resultsTidy %<>%
 
 </details>
 
+## Create an additional user type stratification per reviewer request
+
+<details><summary>Setting research category experience flag details</summary>
+
+```{r}
+resultsTidy %<>%
+  mutate(
+    ExpType = case_when(
+      humanGenomicFlag == TRUE ~ "- More experienced",
+      TRUE ~ "- Less experienced"
+    )
+  ) %>%
+  mutate(UserTypeStratified = paste(UserType, ExpType))
+```
+
+</details>
+
 ## AnVIL Demo Attendance, Awareness, and Utilization
 
 The question asked was pretty granular in describing attendance, use, and awareness of AnVIL Demos. We we want to simplify each possible answer to a binary version of aware of/not aware of or used/have not used.
@@ -643,10 +660,10 @@ The question asked was also pretty granular in describing awareness of and multi
 
 Possible answers include
 
-* Read through others' posts 
-* Posted in 
-* Answered someone's post 
-* No, but aware of 
+* Read through others' posts
+* Posted in
+* Answered someone's post
+* No, but aware of
 * No, didn't know of
 
 ```{r}

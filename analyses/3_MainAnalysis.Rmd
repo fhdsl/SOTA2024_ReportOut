@@ -54,7 +54,7 @@ typeOfUserPlot <- resultsTidy %>%
   )) %>%
   ggplot(aes(y = fct_rev(fct_infreq(CurrentUsageDescription)),
              fill = UserType)) +
-  geom_bar() + 
+  geom_bar() +
   ggtitle("How would you describe your current usage\nof the AnVIL platform?") +
   geom_text(aes(label = after_stat(..count..)), stat = "count",
             position = "stack", hjust = -1, size=4
@@ -92,7 +92,7 @@ degreePlot <- resultsTidy %>%
   ggplot(aes(y = fct_rev(fct_infreq(FurtherSimplifiedDegrees)),
              fill = UserType
              )) +
-      geom_bar() + 
+      geom_bar() +
       geom_text(
         aes(label = after_stat(..count..)), stat = "count",
         position = "stack", hjust = -1, size=4
@@ -320,6 +320,67 @@ PlotToolKnowledge_avg_score
 ggsave(here("resources/plots/tooldataresourcecomfortscore_singlepanel.png"), plot = PlotToolKnowledge_avg_score, width = 9, height = 6, units = "in")
 ```
 
+### Prepare and plot the data, usertype and experience stratified
+
+```{r}
+toPlotToolKnowledgeStrat <- data.frame()
+
+for(strat in unique(resultsTidy$UserTypeStratified)){
+  toPlotToolKnowledgeStrat <- rbind(
+    toPlotToolKnowledgeStrat,
+    resultsTidy %>%
+      filter(UserTypeStratified == strat) %>%
+      select(starts_with("Score_")) %>%
+      colSums() %>%
+      as.data.frame() %>% `colnames<-`(c("totalScore")) %>%
+      mutate(nscores = sum(resultsTidy$UserTypeStratified == strat),
+             avgScore = totalScore / nscores,
+             UserType = strat) %>%
+      mutate(WhereTool = rownames(.)) %>%
+      separate(WhereTool, c("AnVILorNo", "Tool"), sep = "Tech", remove = TRUE) %>%
+      mutate(AnVILorNo =
+                case_when(AnVILorNo == "Score_ReturningAnVIL" ~ "On the AnVIL",
+                          AnVILorNo == "Score_All" ~ "Separate from the AnVIL"),
+              Tool =
+                recode(Tool, "JupyterNotebooks" = "Jupyter Notebooks",
+                             "WDL" = "Workflows",
+                             "CommandLine" = "Unix / Command Line",
+                             "AccessData" = "Access controlled access data",
+                             "Terra" = "Terra Workspaces",
+                             "BioconductorRStudio" = "Bioconductor & RStudio"))
+    ) %>% mutate(UserType = factor(str_replace(UserType, " - ", "\n"),
+                                          levels = c("Potential User\nLess experienced",
+                                                     "Potential User\nMore experienced",
+                                                     "Returning User\nLess experienced",
+                                                     "Returning User\nMore experienced")))
+}
+```
+
+```{r}
+roi <- toPlotToolKnowledgeStrat[which(toPlotToolKnowledgeStrat$Tool == "Bioconductor & RStudio"),]
+toPlotToolKnowledgeStratSeparateBR <- rows_append(toPlotToolKnowledgeStrat, data.frame(
+          UserType = rep(roi$UserType,2),
+          avgScore = rep(roi$avgScore,2),
+          AnVILorNo = rep(roi$AnVILorNo,2),
+          Tool = c("Bioconductor", "RStudio")
+  )) %>%
+  filter(Tool != "Bioconductor & RStudio")
+```
+
+```{r fig.width = 9, fig.height = 6}
+PlotToolKnowledgeStrat_avg_score <-
+  ggplot(toPlotToolKnowledgeStratSeparateBR, aes(y = reorder(Tool, avgScore), x = avgScore)) +
+  geom_point(aes(color = UserType, shape = AnVILorNo), size = 3.5)
+
+
+PlotToolKnowledgeStrat_avg_score %<>% PlotToolKnowledge_customization(usertypeStratified = TRUE)
+
+PlotToolKnowledgeStrat_avg_score <- PlotToolKnowledgeStrat_avg_score +
+  annotation_custom(textGrob("Don't know\nat all", gp=gpar(fontsize=8, fontface = "bold")),xmin=0,xmax=0,ymin=-2,ymax=-2) +
+annotation_custom(textGrob("Extremely\ncomfortable", gp=gpar(fontsize=8, fontface= "bold")),xmin=5,xmax=5,ymin=-2,ymax=-2)
+
+ggsave(here("resources/plots/tooldataresourcecomfortscore_strat_singlepanel.png"), plot = PlotToolKnowledgeStrat_avg_score, width = 9, height = 6, units = "in")
+```
 
 ## Experience: Types of Data Analyzed
 
@@ -455,7 +516,7 @@ We adjust various aspects of the theme like turning off the grid and background 
 genomicsExpPlot <- ggplot(experienceDf, aes(x=experienceLevel,
     fill = experienceLevel)) +
   facet_grid(~researchType) +
-  geom_bar() + 
+  geom_bar() +
   ggtitle("How much experience do you have analyzing the following data categories?")
 
 genomicsExpPlot %<>% stylize_bar(usertypeColor = FALSE, sequentialColor = TRUE, ylabel = "Count", xlabel = "Reported Experience Level", rotate=55, hjustv = 1)
@@ -475,12 +536,24 @@ experienceDf_pct <-
   mutate(GroupTotal = sum(n),
          Pct = n / GroupTotal * 100)
 
-genomicsExpPlot_replot <-
-  ggplot(experienceDf_pct, aes(x=Pct, y=UserType, fill=experienceLevel)) +
+genomicsExpPlot_n <-
+  ggplot(experienceDf_pct, aes(x=n, y = UserType, fill=experienceLevel)) +
   facet_wrap(~researchType, ncol=1) +
   geom_bar(stat = "identity", position = "stack")
 
-genomicsExpPlot_replot %<>% stylize_bar(xlabel = "Percent of Respondents", usertypeColor = FALSE, sequentialColor = TRUE, labelBars = FALSE)
+genomicsExpPlot_n %<>% stylize_bar(xlabel = "Number of\nRespondents", usertypeColor = FALSE, sequentialColor = TRUE, labelBars = FALSE)
+
+genomicsExpPlot_n <- genomicsExpPlot_n +
+  scale_fill_manual(values = c(
+    colorRampPalette(c("grey70", "#333333"))(5)
+  )) + theme(legend.position = "right")
+
+genomicsExpPlot_replot <-
+  ggplot(experienceDf_pct, aes(x=Pct, y=UserType, fill=experienceLevel)) +
+  facet_wrap(~researchType, ncol=1, strip.position = "right", labeller = label_wrap_gen(width = 12)) +
+  geom_bar(stat = "identity", position = "stack")
+
+genomicsExpPlot_replot %<>% stylize_bar(xlabel = "Percent of\nRespondents", usertypeColor = FALSE, sequentialColor = TRUE, labelBars = FALSE)
 
 genomicsExpPlot_replot <- genomicsExpPlot_replot +
   scale_fill_manual(values = c(
@@ -549,7 +622,7 @@ Since this is a select all that apply question, we expect that there will be mul
 dataInterestPlot <- resultsTidy %>%
   ggplot(aes(x = InterestControlledData,
              fill = as.factor(InterestControlledData))) +
-  geom_bar() + 
+  geom_bar() +
   ggtitle("How interested are you in working with controlled access datasets?") +
   annotation_custom(textGrob("Extremely\ninterested", gp=gpar(fontsize=8, fontface = "bold")),xmin=5,xmax=5,ymin=-3.5,ymax=-3.5) +
   annotation_custom(textGrob("Not at all\ninterested", gp=gpar(fontsize=8, fontface= "bold")),xmin=1,xmax=1,ymin=-3.5,ymax=-3.5) +
@@ -656,7 +729,7 @@ everyoneDataPlot <- plot_which_data(whichDataDf)
 
 everyoneDataPlot
 
-ggsave(here("resources/plots/whichcontrolleddata.png"), plot = everyoneDataPlot, width = 11.2, height = 5.7, units ="in") 
+ggsave(here("resources/plots/whichcontrolleddata.png"), plot = everyoneDataPlot, width = 11.2, height = 5.7, units ="in")
 ```
 
 ```{r, fig.width = 11.2, fig.height = 5.7}
@@ -692,15 +765,9 @@ ggsave(here("resources/plots/whichcontrolleddata_nonhumangenomic.png"), plot = n
 #### Raw responses
 
 ```{r fig6a, fig.width = 9, fig.height = 6}
-demoPlotRaw <- resultsTidy %>%
-  ggplot(aes(y=fct_rev(fct_infreq(AnVILDemo)),
-             fill = UserType)) +
-  geom_bar() +
-  ggtitle("Have you attended a monthly AnVIL Demo?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4
-) + coord_cartesian(clip = "off")
+demoPlotRaw <- supportPlotBody(ggplot(resultsTidy,
+  (aes(y=fct_rev(fct_infreq(AnVILDemo)),
+             fill = UserType))), demo = TRUE)
 
 demoPlotRaw %<>% stylize_bar(labelBars = FALSE)
 
@@ -709,24 +776,46 @@ demoPlotRaw
 ggsave(here("resources/plots/demo_raw_responses.png"), plot = demoPlotRaw, width = 9, height = 6, units = "in")
 ```  
 
+#### Raw responses, stratified
+
+```{r fig.width = 9, fig.height = 6}
+demoPlatRawStrat <- supportPlotBody(ggplot(resultsTidy,
+  (aes(y=fct_rev(fct_infreq(AnVILDemo)),
+             fill = UserTypeStratified))), demo = TRUE)
+
+demoPlatRawStrat %<>% stylize_bar(labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
+
+demoPlatRawStrat
+
+ggsave(here("resources/plots/demo_raw_stratified_responses.png"), plot = demoPlatRawStrat, width = 9, height = 6, units = "in")
+```
+
 #### Responses recoded to focus on awareness
 
 ```{r fig6b, fig.width = 9, fig.height = 6}
-demoPlot <- resultsTidy %>%
-  ggplot(aes(y = AnVILDemoAwareness,
-             fill = UserType)) +
-  geom_bar() +
-  ggtitle("Have you attended a monthly AnVIL Demo?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4
-  ) + coord_cartesian(clip = "off")
+demoPlot <- supportPlotBody(ggplot(resultsTidy,
+  (aes(y=fct_rev(fct_infreq(AnVILDemoAwareness)),
+             fill = UserType))), demo = TRUE)
 
 demoPlot %<>% stylize_bar(ylabel = "Awareness", labelBars = FALSE)
 
 demoPlot
 
 ggsave(here("resources/plots/demo_awareness_responses.png"), plot = demoPlot, width = 9, height = 6, units = "in")
+```
+
+#### Recoded responses, stratified
+
+```{r fig.width = 9, fig.height = 6}
+demoPlotStrat <- supportPlotBody(ggplot(resultsTidy,
+  (aes(y=fct_rev(fct_infreq(AnVILDemoAwareness)),
+             fill = UserTypeStratified))), demo = TRUE)
+
+demoPlotStrat %<>% stylize_bar(ylabel = "Awareness", labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
+
+demoPlotStrat
+
+ggsave(here("resources/plots/demo_awareness_stratified_responses.png"), plot = demoPlotStrat, width = 9, height = 6, units = "in")
 ```
 
 ## Awareness: AnVIL Support Forum
@@ -751,17 +840,23 @@ forumdf <- resultsTidy %>%
          )
 ```
 
+```{r}
+forumdf_recode <- pivot_wider(forumdf,
+    id_cols = c(TimestampID, UserType, ExpType, UserTypeStratified),
+    values_from = forumAwareness,
+    names_from = AnVILSupportForum,
+    names_prefix = "forumAwareness_") %>%
+  mutate(forumAwareness = coalesce(!!!select(., starts_with("forumAwareness_")))) %>%
+  select(!starts_with("forumAwareness_"))
+```
+
 #### Raw responses
 
 ```{r fig6c, fig.width = 9.7, fig.height=6}
-forumPlotRaw <- ggplot(forumdf,
-                       aes(y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserType)) +
-  geom_bar() + 
-  ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4
-) + coord_cartesian(clip = "off")
+forumPlotRaw <-
+  supportPlotBody(ggplot(forumdf, aes(
+    y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserType
+  )), forum = TRUE)
 
 forumPlotRaw %<>% stylize_bar(labelBars = FALSE)
 
@@ -771,23 +866,50 @@ ggsave(here("resources/plots/forum_raw_responses.png"), plot = forumPlotRaw, wid
 
 ```
 
+#### Raw responses, stratified
+
+```{r fig.width = 9.7, fig.height=6}
+forumPlotRawStrat <-
+  supportPlotBody(ggplot(forumdf, aes(
+    y = fct_rev(fct_infreq(AnVILSupportForum)), fill = UserTypeStratified
+  )), forum = TRUE)
+
+forumPlotRawStrat %<>% stylize_bar(labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
+
+forumPlotRawStrat
+
+ggsave(here("resources/plots/forum_raw_strat_responses.png"), plot = forumPlotRawStrat, width = 9.7, height = 6, units = "in")
+
+```
+
 #### Responses recoded to focus on awareness
 
 ```{r fig6d, fig.width = 9, fig.height = 6}
-forumPlot <- ggplot(resultsTidy, aes(y = forumAwareness, fill = UserType)) +
-  geom_bar() +
-  ggtitle("Have you ever read or posted in our AnVIL Support Forum?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4) +
-  coord_cartesian(clip = "off")
+forumPlot <- supportPlotBody(ggplot(forumdf_recode, aes(
+  y = fct_rev(fct_infreq(forumAwareness)), fill = UserType
+)), forum = TRUE)
 
-forumPlot %<>% stylize_bar(ylabel = "Awareness", labelBars = FALSE)
+forumPlot %<>% stylize_bar(ylabel = "Awareness", labelBars = FALSE, usertypeStratified = FALSE)
 
 forumPlot
 
 ggsave(here("resources/plots/forum_awareness_responses.png"), plot = forumPlot, width = 9, height = 6, units = "in")
 ```
+
+#### Awareness responses, stratified
+
+```{r fig.width = 9, fig.height = 6}
+forumPlotStrat <- supportPlotBody(ggplot(forumdf_recode, aes(
+    y = fct_rev(fct_infreq(forumAwareness)), fill = UserTypeStratified
+)), forum = TRUE)
+
+forumPlotStrat %<>% stylize_bar(ylabel = "Awareness", labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
+
+forumPlotStrat
+
+ggsave(here("resources/plots/forum_awareness_strat_responses.png"), plot = forumPlotStrat, width = 9, height = 6, units = "in")
+```
+
 
 ## Preferences: Feature Importance Ranking
 
@@ -810,7 +932,7 @@ We're going to look at a comparison of the assigned ranks for these features, co
 
 </details>
 
-### Prepare and plot the data
+### Prepare and plot the data, usertype stratification
 
 Average rank is total rank (sum of given ranks) divided by number of votes (number of given ranks)
 
@@ -901,6 +1023,66 @@ ggsave(here("resources/plots/dumbbellplot_xlim16_revaxis_rankfeatures.png"), plo
 
 ```
 
+### Prepare and plot the data, usertype and experience level stratification
+
+```{r}
+totalRanksdfStrat <- data.frame()
+
+for(strat in unique(resultsTidy$UserTypeStratified)){
+  totalRanksdfStrat <- rbind(totalRanksdfStrat,
+    resultsTidy %>%
+      filter(UserTypeStratified == strat) %>%
+      select(starts_with("ReturningRank")| starts_with("PotentialRank")) %>%
+      colSums(na.rm = TRUE) %>%
+      as.data.frame() %>% `colnames<-`(c("totalRank")) %>%
+      mutate(nranks = sum(resultsTidy$UserTypeStratified == strat),
+             avgRank = totalRank / nranks,
+             UserType = strat) %>%
+      mutate(UsertypeFeature = rownames(.)) %>%
+      separate(UsertypeFeature, c("temp", "Feature"), sep = "Rank", remove = TRUE) %>%
+      mutate(Feature =
+                      case_when(Feature == "EasyBillingSetup" ~ "Easy billing setup",
+                                Feature == "FlatRateBilling" ~ "Flat-rate billing rather than use-based",
+                                Feature == "FreeVersion" ~ "Free version with limited compute or storage",
+                                Feature == "SupportDocs" ~ "On demand support and documentation",
+                                Feature == "ToolsData" ~ "Specific tools or datasets are available/supported",
+                                Feature == "CommunityAdoption" ~ "Greater adoption of the AnVIL by the scientific community")
+  ))
+}
+
+totalRanksdfStrat %<>% mutate(UserType = factor(str_replace(UserType, " - ", "\n"),
+                                      levels = c("Potential User\nLess experienced",
+                                                 "Potential User\nMore experienced",
+                                                 "Returning User\nLess experienced",
+                                                 "Returning User\nMore experienced"))) %>%
+                       filter(totalRank != 0)
+
+
+
+
+```
+
+```{r fig.width = 8.4, fig.height = 5.7}
+gdumbbellStrat <- ggplot(totalRanksdfStrat, aes(x = avgRank, y = reorder(Feature, -avgRank))) +
+    geom_line() +
+    geom_point(aes(color = UserType), size = 3.5) +
+    ggtitle("Rank the following features according to\ntheir importance to you as a potential user\nor for your continued use of the AnVIL.")
+
+
+gdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 6, usertype = FALSE, usertypeStratified = TRUE)
+
+gdumbbellStrat <- gdumbbellStrat +
+  theme(legend.position = "bottom") +
+  annotation_custom(textGrob("Most\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=1,xmax=1,ymin=-0.1,ymax=-0.1) +
+  annotation_custom(textGrob("Least\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=6,xmax=6,ymin=-0.1,ymax=-0.1)
+
+ggsave(here("resources/plots/dumbbellplot_xlim16_revaxis_strat_rankfeatures.png"), plot = gdumbbellStrat, height = 5.7, width = 10.5, units = "in")
+```
+
 ## Preferences: Training Workshop Modality Ranking
 
 **Takeaway:** Both returning and potential users vastly prefer virtual training workshops.
@@ -921,7 +1103,7 @@ The responses are stored in the starts with `AnVILTrainingWorkshops` columns
 
 </details>
 
-### Prepare and plot the data
+### Prepare and plot the data, usertype stratification
 
 <details><summary>Description of variable definitions and steps for preparing the data</summary>
 
@@ -967,9 +1149,66 @@ tdumbbell <- ggplot(toPlotTrainingRanks, aes(x = avgRank, y = reorder(TrainingTy
 
 tdumbbell %<>% stylize_dumbbell(preference = TRUE, xmax = 5)
 
-tdumbbell
+tdumbbell +
+  annotation_custom(textGrob("Most\npreferred", gp=gpar(fontsize=8, fontface = "bold")),xmin=-1,xmax=-1,ymin=-0.25,ymax=-0.25) +
+  annotation_custom(textGrob("Least\npreferred", gp=gpar(fontsize=8, fontface= "bold")),xmin=-5,xmax=-5,ymin=-0.25,ymax=-0.25)
 
-ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in") 
+ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.png"), plot = tdumbbell, height = 5.7, width = 8.4, units = "in")
+```
+
+### Prepare and plot the data, usertype and experience level stratification
+
+```{r}
+toPlotTrainingRanksStrat <- data.frame()
+
+for(strat in unique(resultsTidy$UserTypeStratified)){
+  toPlotTrainingRanksStrat <- rbind(toPlotTrainingRanksStrat,
+    resultsTidy %>%
+      filter(UserTypeStratified == strat) %>%
+      select(starts_with("AnVILTrainingWorkshops")) %>%
+      colSums(na.rm = TRUE) %>%
+      as.data.frame() %>% `colnames<-`(c("totalRank")) %>%
+      mutate(nranks = sum(resultsTidy$UserTypeStratified == strat),
+             avgRank = totalRank / nranks,
+             UserType = strat) %>%
+      mutate(TrainingType = rownames(.)) %>%
+      mutate(TrainingType = str_replace(TrainingType, "AnVILTrainingWorkshops", ""))
+  )
+}
+
+toPlotTrainingRanksStrat %<>% mutate(TrainingType = recode(TrainingType,
+   "SpecEvent" = "AnVIL-specific event",
+   "OnSite" = "On-site at my institution",
+   "Conference" = "Conference (e.g., CSHL, AMIA)")) %>%
+   mutate(UserType = factor(str_replace(UserType, " - ", "\n"), levels = c("Potential User\nLess experienced",
+                                                 "Potential User\nMore experienced",
+                                                 "Returning User\nLess experienced",
+                                                 "Returning User\nMore experienced")))
+
+
+
+
+```
+
+```{r fig.width = 8.4, fig.height = 5.7}
+tdumbbellStrat <- ggplot(toPlotTrainingRanksStrat, aes(x = avgRank, y = reorder(TrainingType, -avgRank))) +
+    geom_line() +
+    geom_point(aes(color = UserType), size = 3.5) +
+    ggtitle("Please rank how/where you would prefer\nto attend AnVIL training workshops.")
+
+
+tdumbbellStrat %<>% stylize_dumbbell(preference = TRUE, xmax = 5, usertype = FALSE, usertypeStratified = TRUE)
+
+tdumbbellStrat <- tdumbbellStrat +
+  theme(legend.position = "bottom") +
+  annotation_custom(textGrob("Most\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=1,xmax=1,ymin=-0.1,ymax=-0.1) +
+  annotation_custom(textGrob("Least\npreferred",
+                             gp=gpar(fontsize=8, fontface = "bold")),
+                             xmin=5,xmax=5,ymin=-0.1,ymax=-0.1)
+
+ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_strat_trainingmodalitypref.png"), plot = tdumbbellStrat, height = 5.7, width = 8.4, units = "in")
 ```
 
 ## Preferences: Where analyses are currently run
@@ -981,8 +1220,8 @@ ggsave(here("resources/plots/dumbbellplot_xlim15_revaxis_trainingmodalitypref.pn
 
 ### Prepare and plot the data
 
-```{r fig7b}
-whereRunPlot <- resultsTidy %>%
+```{r fig7bPrep}
+whereRundf <- resultsTidy %>%
   separate_longer_delim(WhereAnalysesRun,
            delim = ", ") %>%
   mutate(WhereAnalysesRun =
@@ -994,21 +1233,42 @@ whereRunPlot <- resultsTidy %>%
                   "Institutional High Performance Computing cluster (HPC)" = "Institutional HPC",
                   "Personal computer (locally)," = "Personal computer (locally)",
                   "local server" = "Institutional HPC")
-         ) %>%
-  ggplot(aes(y = fct_rev(fct_infreq(WhereAnalysesRun)), 
-             fill = UserType)) +
-  geom_bar() + 
-  ggtitle("Where do you currently run analyses?") +
-  geom_text(
-    aes(label = after_stat(..count..)), stat = "count",
-    position = "stack", hjust = -1, size=4
-  ) + coord_cartesian(clip = "off")
+         )
+```
+```{r fig7b}
+whereRunPlot <-
+  supportPlotBody(ggplot(whereRundf, aes(
+      y = fct_rev(fct_infreq(WhereAnalysesRun)), fill = UserType
+  )), platform = TRUE)
 
 whereRunPlot %<>% stylize_bar(ylabel = "Platform", labelBars = FALSE)
 
 whereRunPlot
 
-ggsave(here("resources/plots/where_run.png"), plot = whereRunPlot) #set save size
+ggsave(here("resources/plots/where_run.png"), plot = whereRunPlot, width = 9.8, height = 5.7, units = "in")
+
+```
+
+#### Additional usertype stratification
+
+```{r}
+
+whereRundf %<>%
+  mutate(UserType = factor(str_replace(UserTypeStratified, " - ", "\n"),
+                                   levels = c("Potential User\nLess experienced",
+                                              "Potential User\nMore experienced",
+                                              "Returning User\nLess experienced",
+                                              "Returning User\nMore experienced")))
+
+whereRunPlotStrat <-  supportPlotBody(ggplot(whereRundf, aes(
+      y = fct_rev(fct_infreq(WhereAnalysesRun)), fill = UserTypeStratified
+    )), platform = TRUE)
+
+whereRunPlotStrat %<>% stylize_bar(ylabel = "Platform", labelBars = FALSE, usertypeColor = FALSE, usertypeStratified = TRUE)
+
+whereRunPlotStrat
+
+ggsave(here("resources/plots/where_run_stratified.png"), plot = whereRunPlotStrat, width = 9.8, height = 5.7, units = "in")
 
 ```
 
@@ -1038,11 +1298,11 @@ dmsPlot <- resultsTidy %>%
   select(UserType, RepositoriesDMS) %>%
   left_join(nonOtherResponses, by = c("RepositoriesDMS" = "Description")) %>% #use this left_join to identify responses that weren't user provided
   replace_na(list(suffix="*")) %>% #user provided responses will have NA in the suffix column from the left_join, so we replace those with an asterisk
-  unite(RepositoriesMut, c("RepositoriesDMS", "suffix"), sep="") %>% #unite the responses with the suffix, appending the asterisk for user supplied answers
+  tidyr::unite(RepositoriesMut, c("RepositoriesDMS", "suffix"), sep="") %>% #unite the responses with the suffix, appending the asterisk for user supplied answers
   ggplot(aes(
-             y = fct_rev(fct_infreq(RepositoriesMut)), 
+             y = fct_rev(fct_infreq(RepositoriesMut)),
              fill = UserType)) +
-  geom_bar() + 
+  geom_bar() +
   labs(caption = '* denotes a user provided "Other" response') + #Add a caption about * meaning an "Other" response that was user provided
   ggtitle("What repositories are you considering\nto share data (for example, to comply\nwith the NIH DMS Policy)?") +
   geom_text(
@@ -1099,9 +1359,9 @@ toPlotFundingSource <- resultsTidy %>%
 ```{r, fig.width = 9.8, fig.height = 5.7}
 
 fundingSourcePlot <- toPlotFundingSource %>%
-  ggplot(aes(y = fct_rev(fct_infreq(FundingSources)), 
+  ggplot(aes(y = fct_rev(fct_infreq(FundingSources)),
              fill = UserType)) +
-  geom_bar() + 
+  geom_bar() +
   ggtitle("What source(s) of funds do you use to pay for cloud computing?") +
   geom_text(
     aes(label = after_stat(..count..)), stat = "count",
@@ -1112,7 +1372,7 @@ fundingSourcePlot %<>% stylize_bar(ylabel="Funding Source", labelBars = FALSE)
 
 fundingSourcePlot
 
-ggsave(here("resources/plots/fundingsources.png"), plot = fundingSourcePlot, width = 9.8, height = 5.7, units = "in") 
+ggsave(here("resources/plots/fundingsources.png"), plot = fundingSourcePlot, width = 9.8, height = 5.7, units = "in")
 ```
 
 ## Returning User: Length of Use of the AnVIL
@@ -1124,7 +1384,7 @@ timeUsePlot <- resultsTidy %>%
   filter(UserType == "Returning User") %>% #not asked to everyone
   ggplot(aes(x = LengthOfUse,
              fill = "#25445A")) +
-  geom_bar() + 
+  geom_bar() +
   ggtitle("How long have you been using the AnVIL?")
 
 timeUsePlot %<>% stylize_bar(usertypeColor = FALSE, singleColor = TRUE, xlabel = "Years of Use", ylabel = "Count")
@@ -1166,11 +1426,11 @@ recLikePlot <- resultsTidy %>%
   filter(UserType == "Returning User") %>% #not asked to everyone
   ggplot(aes(x = RecommendationLikelihood,
              fill = as.factor(RecommendationLikelihood))) +
-  geom_bar() + 
+  geom_bar() +
   ggtitle("How likely are you to recommend the AnVIL to a colleague?") +
   annotation_custom(textGrob("Extremely likely", gp=gpar(fontsize=8, fontface = "bold")),xmin=5,xmax=5,ymin=-1.2,ymax=-1.2) +
   annotation_custom(textGrob("Not at all likely", gp=gpar(fontsize=8, fontface= "bold")),xmin=1,xmax=1,ymin=-1.2,ymax=-1.2) +
-  scale_y_continuous(breaks= pretty_breaks()) 
+  scale_y_continuous(breaks= pretty_breaks())
 
 recLikePlot %<>% stylize_bar(usertypeColor = FALSE, sequentialColor = TRUE, xlabel = "Recommendation likelihood", ylabel = "Count")
 
